@@ -22,6 +22,7 @@ services:
 
   minio:
     image: minio/minio:latest
+    env_file: ../../.env
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
@@ -34,6 +35,12 @@ services:
 
   api:
     build: ../../apps/api
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tcg_pipeline
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
     depends_on:
       - db
     ports:
@@ -43,6 +50,7 @@ services:
 
   web:
     build: ../../apps/web
+    env_file: ../../.env
     depends_on:
       - api
     ports:
@@ -52,6 +60,7 @@ services:
 
   worker:
     build: ../../apps/worker
+    env_file: ../../.env
     depends_on:
       - api
       - redis

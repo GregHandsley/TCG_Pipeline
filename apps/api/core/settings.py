@@ -4,8 +4,8 @@ from pydantic import BaseModel
 class Settings(BaseModel):
     # Postgres (not used yet in Sprint 1, but keep for consistency)
     postgres_user: str = os.getenv("POSTGRES_USER", "postgres")
-    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    postgres_db: str = os.getenv("POSTGRES_DB", "tcg")
+    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "password")
+    postgres_db: str = os.getenv("POSTGRES_DB", "tcg_pipeline")
     postgres_host: str = os.getenv("POSTGRES_HOST", "db")
     postgres_port: int = int(os.getenv("POSTGRES_PORT", "5432"))
 

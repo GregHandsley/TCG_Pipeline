@@ -3,3 +3,6 @@ uvicorn[standard]==0.30.0
 pydantic==2.7.4
 minio==7.2.5
 python-multipart==0.0.9
+SQLAlchemy==2.0.32
+alembic==1.13.2
+psycopg2-binary==2.9.9
