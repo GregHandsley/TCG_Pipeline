@@ -27,4 +27,11 @@ class Settings(BaseModel):
     # Confidence threshold (used in later sprints)
     id_confidence_threshold: float = float(os.getenv("ID_CONFIDENCE_THRESHOLD", "0.88"))
 
+    # LLM (OpenAI)
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    llm_model: str = os.getenv("LLM_MODEL", "gpt-4o-mini")
+
+    shipping_info: str = os.getenv("SHIPPING_INFO", "Dispatched within 24 hours via tracked service.")
+    returns_policy: str = os.getenv("RETURNS_POLICY", "30-day returns accepted; buyer pays return postage unless item is not as described.")
+
 settings = Settings()

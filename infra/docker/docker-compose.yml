@@ -35,6 +35,7 @@ services:
 
   api:
     build: ../../apps/api
+    env_file: ../../.env
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -42,7 +43,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       XIMILAR_API_KEY: 924ee16b2be961c54be5c47dc0b3bbc865e36d25
-      ID_CONFIDENCE_THRESHOLD: 0.99
+      ID_CONFIDENCE_THRESHOLD: 0.60
     depends_on:
       - db
     ports:
