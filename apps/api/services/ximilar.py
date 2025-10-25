@@ -10,7 +10,7 @@ TCG_ID_PATH = "/collectibles/v2/tcg_id"           # TCG card identification
 IMG_BG_REMOVE_PATH = "/removebg/fast/removebg"     # Fast background removal
 GRADING_PATH = "/card-grader/v2/grade"            # Card grading
 
-DEFAULT_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=30.0, pool=10.0)
+DEFAULT_TIMEOUT = httpx.Timeout(connect=30.0, read=120.0, write=60.0, pool=30.0)
 HEADERS = {"Authorization": f"Token {settings.ximilar_api_key}"}
 
 # ---- Helpers ----
@@ -184,8 +184,8 @@ async def identify_card(image_bytes: bytes) -> Dict[str, Any]:
 
 async def edit_image(image_bytes: bytes) -> bytes:
     """
-    Background removal + crop/center. Adjust endpoint/params for your preset.
-    Returns cleaned image bytes (default content-type: image/png from the service).
+    Background removal using Ximilar API - completely rewritten from scratch.
+    Returns cleaned image bytes with white background.
     """
     if not settings.ximilar_api_key:
         raise HTTPException(500, "Ximilar API key is not configured.")
@@ -198,35 +198,140 @@ async def edit_image(image_bytes: bytes) -> bytes:
         return mock_png
     
     async with httpx.AsyncClient(base_url=settings.ximilar_base, headers=HEADERS, timeout=DEFAULT_TIMEOUT) as cx:
-        # Convert image bytes to base64
         import base64
+        from PIL import Image
+        import io
+        
+        # Compress image if it's too large (Ximilar has size limits)
+        try:
+            image = Image.open(io.BytesIO(image_bytes))
+            original_size = len(image_bytes)
+            
+            # If image is larger than 5MB, compress it
+            if original_size > 5 * 1024 * 1024:  # 5MB
+                print(f"Image too large ({original_size} bytes), compressing...")
+                
+                # Resize if dimensions are very large
+                max_dimension = 2048
+                if image.width > max_dimension or image.height > max_dimension:
+                    image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
+                    print(f"Resized to {image.width}x{image.height}")
+                
+                # Compress as JPEG with quality 85
+                jpeg_buffer = io.BytesIO()
+                if image.mode in ('RGBA', 'LA', 'P'):
+                    # Convert to RGB for JPEG
+                    rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+                    if image.mode == 'P':
+                        image = image.convert('RGBA')
+                    rgb_image.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                    rgb_image.save(jpeg_buffer, format='JPEG', quality=85, optimize=True)
+                else:
+                    image.convert('RGB').save(jpeg_buffer, format='JPEG', quality=85, optimize=True)
+                
+                image_bytes = jpeg_buffer.getvalue()
+                print(f"Compressed from {original_size} to {len(image_bytes)} bytes")
+        except Exception as e:
+            print(f"Could not compress image: {e}")
+            # Continue with original bytes
+        
+        # Convert to base64 - simple and clean
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
         
-        # Use the correct JSON format for background removal
+        # Exact format from Ximilar documentation
         payload = {
             "records": [
                 {
-                    "_base64": image_base64,
-                    "white_background": True
+                    "_base64": image_base64
                 }
-            ]
+            ],
+            "white_background": True
         }
         
+        print(f"Sending request to Ximilar with base64 length: {len(image_base64)}")
+        
         resp = await cx.post(
-            IMG_BG_REMOVE_PATH,
+            "/removebg/precise/removebg",
             json=payload
         )
-        _raise_for_status(resp, "image edit")
         
-        # Download the processed image from the URL
+        print(f"Ximilar response status: {resp.status_code}")
+        print(f"Ximilar response: {resp.text}")
+        
+        if resp.status_code != 200:
+            raise HTTPException(500, f"Ximilar API error: {resp.text}")
+        
         result = resp.json()
-        if result.get("records") and result["records"][0].get("_output_url_whitebg"):
-            image_url = result["records"][0]["_output_url_whitebg"]
-            # Download the image
-            download_resp = await cx.get(image_url)
-            return download_resp.content
+        
+        # Get the processed image URL (try white background first, then transparent)
+        if result.get("records") and len(result["records"]) > 0:
+            record = result["records"][0]
+            
+            # Try white background first, then fall back to transparent
+            image_url = record.get("_output_url_whitebg") or record.get("_output_url")
+            
+            if image_url:
+                # Download the processed image using a separate client without Ximilar headers
+                async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as download_client:
+                    download_resp = await download_client.get(image_url)
+                    
+                    if download_resp.status_code == 200:
+                        return download_resp.content
+                    else:
+                        raise HTTPException(500, f"Failed to download processed image: {download_resp.status_code}")
+            else:
+                raise HTTPException(500, "No image URL in response")
         else:
-            raise HTTPException(500, "No processed image URL returned")
+            raise HTTPException(500, "No records in response")
+
+async def enhance_image(image_bytes: bytes) -> bytes:
+    """
+    Simple, effective image enhancement that actually improves quality.
+    Focus on subtle improvements that make the image better, not worse.
+    """
+    from PIL import Image, ImageEnhance
+    import io
+    
+    try:
+        print(f"Processing simple, effective image enhancement...")
+        
+        # Open the original image
+        image = Image.open(io.BytesIO(image_bytes))
+        print(f"Original image: {image.width}x{image.height}, mode: {image.mode}")
+        
+        # Convert to RGB if needed
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Simple, effective enhancements
+        # 1. Very subtle contrast enhancement
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.05)  # Just 5% more contrast
+        
+        # 2. Very subtle brightness adjustment
+        enhancer = ImageEnhance.Brightness(image)
+        image = enhancer.enhance(1.02)  # Just 2% brighter
+        
+        # 3. Very subtle color enhancement
+        enhancer = ImageEnhance.Color(image)
+        image = enhancer.enhance(1.03)  # Just 3% more color
+        
+        # 4. Very subtle sharpening
+        enhancer = ImageEnhance.Sharpness(image)
+        image = enhancer.enhance(1.05)  # Just 5% sharper
+        
+        # Save as high-quality JPEG
+        output_buffer = io.BytesIO()
+        image.save(output_buffer, format='JPEG', quality=95, optimize=True)
+        
+        result_bytes = output_buffer.getvalue()
+        print(f"Enhanced image size: {len(result_bytes)} bytes (original: {len(image_bytes)} bytes)")
+        
+        return result_bytes
+        
+    except Exception as e:
+        print(f"Enhancement error: {e}")
+        raise HTTPException(500, f"Image enhancement failed: {e}")
 
 async def grade_card(image_bytes: bytes) -> Dict[str, Any]:
     """

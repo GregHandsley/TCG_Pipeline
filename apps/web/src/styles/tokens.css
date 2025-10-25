@@ -1,0 +1,10 @@
+:root{
+  /* RGB triplets for Tailwind alpha support */
+  --brand: 59 130 246;        /* blue-500 */
+  --surface: 248 250 252;      /* slate-50 */
+  --border: 226 232 240;       /* slate-200 */
+  --ink: 15 23 42;             /* slate-900 */
+  --muted-ink: 100 116 139;    /* slate-500 */
+}
+
+* { box-sizing: border-box; }
