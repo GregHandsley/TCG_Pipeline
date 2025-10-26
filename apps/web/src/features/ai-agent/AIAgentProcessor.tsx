@@ -127,6 +127,13 @@ function AIAgentProcessor() {
     }
   };
 
+  const handleMoveFromDraw = (drawIndex: number, targetPairIndex: number, targetCardType: 'front' | 'back') => {
+    if (isProcessing) return;
+    
+    // This will be handled by the PokemonCardDisplay component's internal state
+    // The component manages its own draw pile and handles the movement
+  };
+
   // Determine dialogue state
   const getDialogueState = () => {
     if (error) return 'error';
