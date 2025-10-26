@@ -48,6 +48,37 @@ export function useCardPairing() {
     setCardStatuses({});
   };
 
+  const moveCardBetweenPairs = (fromPairIndex: number, fromCardType: 'front' | 'back', toPairIndex: number, toCardType: 'front' | 'back') => {
+    setCardPairs(prev => {
+      const newPairs = [...prev];
+      const fromPair = newPairs[fromPairIndex];
+      const toPair = newPairs[toPairIndex];
+      
+      if (!fromPair || !toPair) return prev;
+      
+      const sourceFile = fromCardType === 'front' ? fromPair.front : fromPair.back;
+      const targetFile = toCardType === 'front' ? toPair.front : toPair.back;
+      
+      if (!sourceFile) return prev;
+      
+      // Move the source file to target position
+      if (toCardType === 'front') {
+        toPair.front = sourceFile;
+      } else {
+        toPair.back = sourceFile;
+      }
+      
+      // Clear the source position
+      if (fromCardType === 'front') {
+        fromPair.front = null;
+      } else {
+        fromPair.back = null;
+      }
+      
+      return newPairs;
+    });
+  };
+
   const initializeCardStatuses = (pairs: CardPair[]) => {
     const initialStatuses: Record<number, CardStatus> = {};
     pairs.forEach((_, index) => {
@@ -72,6 +103,7 @@ export function useCardPairing() {
     clearAll,
     initializeCardStatuses,
     updateCardStatus,
-    setCardStatuses
+    setCardStatuses,
+    moveCardBetweenPairs
   };
 }

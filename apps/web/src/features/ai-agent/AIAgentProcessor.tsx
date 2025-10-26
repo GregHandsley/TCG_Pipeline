@@ -21,8 +21,9 @@ function AIAgentProcessor() {
     clearAll,
     initializeCardStatuses,
     updateCardStatus,
-    setCardStatuses
-  } = useCardPairing();
+    setCardStatuses,
+    moveCardBetweenPairs
+  } = useCardPairing() as any;
 
   const {
     isProcessing,
@@ -105,6 +106,27 @@ function AIAgentProcessor() {
     clearResults();
   };
 
+  const handleDeleteCard = (pairIndex: number, cardType: 'front' | 'back') => {
+    if (isProcessing) return;
+    
+    const pair = cardPairs[pairIndex];
+    if (!pair) return;
+
+    if (cardType === 'front' && pair.front) {
+      removeFile(files.indexOf(pair.front));
+    } else if (cardType === 'back' && pair.back) {
+      removeFile(files.indexOf(pair.back));
+    }
+  };
+
+  const handleMoveCard = (fromPairIndex: number, fromCardType: 'front' | 'back', toPairIndex: number, toCardType: 'front' | 'back') => {
+    if (isProcessing) return;
+    
+    if (moveCardBetweenPairs) {
+      moveCardBetweenPairs(fromPairIndex, fromCardType, toPairIndex, toCardType);
+    }
+  };
+
   // Determine dialogue state
   const getDialogueState = () => {
     if (error) return 'error';
@@ -135,6 +157,8 @@ function AIAgentProcessor() {
             setShowResults(true);
           }
         }}
+        onDeleteCard={handleDeleteCard}
+        onMoveCard={handleMoveCard}
       />
 
       {/* File Upload */}
