@@ -9,22 +9,32 @@ interface ProcessButtonProps {
 
 export function ProcessButton({ files, isProcessing, onStartProcessing, onStopProcessing }: ProcessButtonProps) {
   return (
-    <div className="text-center">
-      <div className="flex gap-3 justify-center">
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         <button
           onClick={onStartProcessing}
           disabled={files.length === 0 || isProcessing}
-          className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="pc-button primary"
+          style={{ 
+            fontSize: '10px',
+            padding: '12px 24px',
+            minWidth: '160px'
+          }}
         >
-          {isProcessing ? `Processing ${files.length} Cards...` : `Process ${files.length} Card${files.length !== 1 ? 's' : ''}`}
+          {isProcessing ? `🔬 ANALYZING ${files.length} CARDS...` : `🚀 START RESEARCH (${files.length} CARD${files.length !== 1 ? 'S' : ''})`}
         </button>
         
         {isProcessing && (
           <button
             onClick={onStopProcessing}
-            className="px-8 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
+            className="pc-button danger"
+            style={{ 
+              fontSize: '10px',
+              padding: '12px 24px',
+              minWidth: '120px'
+            }}
           >
-            Stop Processing
+            ⏹️ STOP RESEARCH
           </button>
         )}
       </div>

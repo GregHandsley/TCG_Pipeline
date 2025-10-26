@@ -8,21 +8,56 @@ interface ProcessingOptionsProps {
 }
 
 export function ProcessingOptionsComponent({ options, isProcessing, onOptionChange }: ProcessingOptionsProps) {
+  const optionLabels = {
+    remove_background: '✂️ CROP CARD',
+    identify: '🔍 IDENTIFY',
+    grade: '📊 GRADE',
+    enhance: '✨ ENHANCE',
+    generate_description: '📝 LISTING'
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Processing Options</h2>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div>
+      <div style={{ 
+        fontSize: '12px', 
+        color: 'var(--pokemon-dark-blue)', 
+        marginBottom: '12px',
+        textAlign: 'center',
+        fontWeight: 'bold'
+      }}>
+        🔬 RESEARCH OPTIONS
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
         {Object.entries(options).map(([key, value]) => (
-          <label key={key} className="flex items-center space-x-2 cursor-pointer">
+          <label key={key} style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            cursor: isProcessing ? 'not-allowed' : 'pointer',
+            opacity: isProcessing ? 0.6 : 1,
+            fontSize: '8px',
+            padding: '6px',
+            background: value ? 'var(--pokemon-light-green)' : 'var(--pc-panel-bg)',
+            border: `2px solid ${value ? 'var(--pokemon-green)' : 'var(--pc-border)'}`,
+            borderRadius: '4px',
+            transition: 'all 0.2s ease'
+          }}>
             <input
               type="checkbox"
               checked={value}
               onChange={() => onOptionChange(key as keyof ProcessingOptions)}
               disabled={isProcessing}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              style={{ 
+                width: '12px', 
+                height: '12px',
+                accentColor: 'var(--pokemon-green)'
+              }}
             />
-            <span className="text-sm font-medium text-gray-700 capitalize">
-              {key.replace('_', ' ')}
+            <span style={{ 
+              color: value ? 'var(--pokemon-dark-green)' : 'var(--pc-text)',
+              fontWeight: 'bold'
+            }}>
+              {optionLabels[key as keyof ProcessingOptions]}
             </span>
           </label>
         ))}

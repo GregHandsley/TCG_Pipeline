@@ -3,12 +3,12 @@ import { ProcessingOptions } from './types';
 import { useCardPairing } from './hooks/useCardPairing';
 import { useAIProcessing } from './hooks/useAIProcessing';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { FileUpload } from './components/FileUpload';
+import { PokemonPCInterface } from './components/PokemonPCInterface';
 import { ProcessingOptionsComponent } from './components/ProcessingOptions';
 import { ProcessButton } from './components/ProcessButton';
-import { CardsGrid } from './components/CardsGrid';
-import { ProcessingResults } from './components/ProcessingResults';
-import { AIActivityPanel } from './components/AIActivityPanel';
+import { PokemonProcessingResults } from './components/PokemonProcessingResults';
+import { PokemonAIActivityPanel } from './components/PokemonAIActivityPanel';
+import './styles/pokemon-ui.css';
 
 function AIAgentProcessor() {
   const {
@@ -101,17 +101,14 @@ function AIAgentProcessor() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">🤖 AI Card Processor</h1>
-        <p className="text-gray-600">Batch process multiple cards with intelligent AI analysis</p>
-      </div>
-
-      <FileUpload
+    <div className="pokemon-ui">
+      <PokemonPCInterface
         files={files}
         cardPairs={cardPairs}
         cardStatuses={cardStatuses}
         isProcessing={isProcessing}
+        currentStep={currentStep}
+        thoughtCount={thoughtLog.length}
         onFileSelect={handleFileSelect}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -119,30 +116,26 @@ function AIAgentProcessor() {
         onClearAll={handleClearAll}
       />
 
-      <ProcessingOptionsComponent
-        options={options}
-        isProcessing={isProcessing}
-        onOptionChange={handleOptionChange}
-      />
+      <div className="pc-panel">
+        <ProcessingOptionsComponent
+          options={options}
+          isProcessing={isProcessing}
+          onOptionChange={handleOptionChange}
+        />
+      </div>
 
-      <ProcessButton
-        files={files}
-        isProcessing={isProcessing}
-        onStartProcessing={handleStartProcessing}
-        onStopProcessing={stopProcessing}
-      />
+      <div className="pc-panel">
+        <ProcessButton
+          files={files}
+          isProcessing={isProcessing}
+          onStartProcessing={handleStartProcessing}
+          onStopProcessing={stopProcessing}
+        />
+      </div>
 
-      <CardsGrid
-        files={files}
-        cardStatuses={cardStatuses}
-        results={results}
-        isProcessing={isProcessing}
-        onFileRemove={removeFile}
-      />
+      {results && <PokemonProcessingResults results={results} />}
 
-      {results && <ProcessingResults results={results} />}
-
-      <AIActivityPanel
+      <PokemonAIActivityPanel
         isOpen={isActivityPanelOpen}
         onToggle={() => setIsActivityPanelOpen(!isActivityPanelOpen)}
         thoughtLog={thoughtLog}

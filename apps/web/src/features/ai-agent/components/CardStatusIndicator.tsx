@@ -17,25 +17,84 @@ export function CardStatusIndicator({ status, progress }: CardStatusIndicatorPro
     }
   };
 
-  const getStatusColor = () => {
+  const getStatusStyle = () => {
     switch (status) {
-      case 'pending': return 'border-gray-300 bg-gray-50';
-      case 'processing': return 'border-blue-300 bg-blue-50';
-      case 'completed': return 'border-green-300 bg-green-50';
-      case 'error': return 'border-red-300 bg-red-50';
-      default: return 'border-gray-300 bg-gray-50';
+      case 'pending': 
+        return { 
+          background: 'var(--pokemon-gray)', 
+          borderColor: 'var(--pokemon-dark-gray)',
+          color: 'var(--pokemon-white)'
+        };
+      case 'processing': 
+        return { 
+          background: 'var(--pokemon-blue)', 
+          borderColor: 'var(--pokemon-dark-blue)',
+          color: 'var(--pokemon-white)'
+        };
+      case 'completed': 
+        return { 
+          background: 'var(--pokemon-green)', 
+          borderColor: 'var(--pokemon-dark-green)',
+          color: 'var(--pokemon-white)'
+        };
+      case 'error': 
+        return { 
+          background: 'var(--pokemon-red)', 
+          borderColor: 'var(--pokemon-dark-red)',
+          color: 'var(--pokemon-white)'
+        };
+      default: 
+        return { 
+          background: 'var(--pokemon-gray)', 
+          borderColor: 'var(--pokemon-dark-gray)',
+          color: 'var(--pokemon-white)'
+        };
     }
   };
 
+  const statusStyle = getStatusStyle();
+
   return (
-    <div className={`absolute top-2 right-2 w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm ${getStatusColor()}`}>
+    <div 
+      className="pokemon-status"
+      style={{
+        ...statusStyle,
+        position: 'absolute',
+        top: '4px',
+        right: '4px',
+        width: '16px',
+        height: '16px',
+        borderRadius: '50%',
+        border: `1px solid ${statusStyle.borderColor}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '8px',
+        fontWeight: 'bold',
+        boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)'
+      }}
+    >
       {status === 'processing' && progress ? (
-        <div className="relative w-6 h-6">
-          <div className="absolute inset-0 rounded-full border-2 border-blue-200"></div>
-          <div 
-            className="absolute inset-0 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"
-            style={{ transform: `rotate(${progress * 3.6}deg)` }}
-          ></div>
+        <div style={{ 
+          position: 'relative', 
+          width: '12px', 
+          height: '12px',
+          animation: 'pokemon-spin 1s linear infinite'
+        }}>
+          <div style={{ 
+            position: 'absolute', 
+            inset: '0', 
+            borderRadius: '50%', 
+            border: '1px solid rgba(255,255,255,0.3)' 
+          }}></div>
+          <div style={{ 
+            position: 'absolute', 
+            inset: '0', 
+            borderRadius: '50%', 
+            border: '1px solid var(--pokemon-white)', 
+            borderTopColor: 'transparent',
+            transform: `rotate(${progress * 3.6}deg)`
+          }}></div>
         </div>
       ) : (
         getStatusIcon()
