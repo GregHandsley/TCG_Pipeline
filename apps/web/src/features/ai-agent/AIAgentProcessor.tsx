@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ProcessingOptions } from './types';
 import { useCardPairing } from './hooks/useCardPairing';
 import { useAIProcessing } from './hooks/useAIProcessing';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { PokemonPCInterface } from './components/PokemonPCInterface';
+import { ProfessorOakDialogue } from './components/ProfessorOakDialogue';
+import { PokemonCardDisplay } from './components/PokemonCardDisplay';
 import { ProcessingOptionsComponent } from './components/ProcessingOptions';
 import { ProcessButton } from './components/ProcessButton';
-import { PokemonProcessingResults } from './components/PokemonProcessingResults';
+import { PokemonResearchResults } from './components/PokemonResearchResults';
 import { PokemonAIActivityPanel } from './components/PokemonAIActivityPanel';
 import './styles/pokemon-ui.css';
 
@@ -44,6 +45,8 @@ function AIAgentProcessor() {
     enhance: false,
     generate_description: true
   });
+
+  const [showResults, setShowResults] = useState(false);
 
   // Cleanup effect
   useEffect(() => {
@@ -102,24 +105,88 @@ function AIAgentProcessor() {
     clearResults();
   };
 
+  // Determine dialogue state
+  const getDialogueState = () => {
+    if (error) return 'error';
+    if (isProcessing) return 'processing';
+    if (results) return 'completed';
+    if (files.length > 0) return 'uploading';
+    return 'empty';
+  };
+
   return (
     <div className="pokemon-ui">
-      <PokemonPCInterface
-        files={files}
-        cardPairs={cardPairs}
-        cardStatuses={cardStatuses}
-        isProcessing={isProcessing}
+      {/* Professor Oak Dialogue */}
+      <ProfessorOakDialogue
+        state={getDialogueState()}
+        cardCount={cardPairs.length}
         currentStep={currentStep}
-        thoughtCount={thoughtLog.length}
-        onFileSelect={handleFileSelect}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onClearAll={handleClearAll}
-        error={error}
-        onRetry={clearError}
+        errorMessage={error || undefined}
       />
 
+      {/* Card Display */}
+      <PokemonCardDisplay
+        cardPairs={cardPairs}
+        cardStatuses={cardStatuses}
+        results={results?.results || null}
+        isProcessing={isProcessing}
+        onCardClick={(index) => {
+          if (results) {
+            setShowResults(true);
+          }
+        }}
+      />
+
+      {/* File Upload */}
+      <div className="pc-panel">
+        <div style={{ textAlign: 'center', padding: '16px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--pokemon-dark-blue)', marginBottom: '12px' }}>
+            📁 UPLOAD POKÉMON CARDS
+          </div>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+            <button
+              className="pc-button primary"
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                  const target = e.target as HTMLInputElement;
+                  if (target.files) {
+                    const newFiles = Array.from(target.files);
+                    addFiles(newFiles);
+                  }
+                };
+                input.click();
+              }}
+              disabled={isProcessing}
+            >
+              📁 SELECT CARDS
+            </button>
+            {files.length > 0 && (
+              <button
+                className="pc-button danger"
+                onClick={handleClearAll}
+                disabled={isProcessing}
+              >
+                🗑️ CLEAR ALL
+              </button>
+            )}
+          </div>
+          {files.length > 0 && (
+            <div style={{ 
+              marginTop: '8px', 
+              fontSize: '8px', 
+              color: 'var(--pokemon-green)' 
+            }}>
+              {files.length} card{files.length !== 1 ? 's' : ''} ready for analysis
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Processing Options */}
       <div className="pc-panel">
         <ProcessingOptionsComponent
           options={options}
@@ -128,6 +195,7 @@ function AIAgentProcessor() {
         />
       </div>
 
+      {/* Process Button */}
       <div className="pc-panel">
         <ProcessButton
           files={files}
@@ -137,8 +205,16 @@ function AIAgentProcessor() {
         />
       </div>
 
-      {results && <PokemonProcessingResults results={results} />}
+      {/* Results Panel */}
+      {results && (
+        <PokemonResearchResults
+          results={results}
+          isVisible={showResults}
+          onClose={() => setShowResults(false)}
+        />
+      )}
 
+      {/* AI Activity Panel */}
       <PokemonAIActivityPanel
         isOpen={isActivityPanelOpen}
         onToggle={() => setIsActivityPanelOpen(!isActivityPanelOpen)}
