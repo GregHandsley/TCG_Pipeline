@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 import httpx
+import time
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException
 from core.settings import settings
@@ -43,7 +44,7 @@ class AIAgent:
         thought_entry = {
             "step": step,
             "thought": friendly_thought,
-            "timestamp": asyncio.get_event_loop().time()
+            "timestamp": time.time() * 1000  # Unix timestamp in milliseconds
         }
         
         self.thought_log.append(thought_entry)
