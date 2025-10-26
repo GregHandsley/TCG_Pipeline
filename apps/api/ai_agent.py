@@ -69,10 +69,25 @@ class AIAgent:
             return "I'm planning the best way to process your card..."
         
         elif "Processing plan:" in thought:
-            return "Here's my plan: I'll remove the background, identify the card, grade its condition, and create an eBay listing."
+            return "Here's my plan: I'll check the orientation, remove the background, identify the card, grade its condition, and create an eBay listing."
         
         elif "Processing card" in thought:
             return f"Working on your card now..."
+        
+        elif "check_orientation" in thought and "Check if card needs rotation" in thought:
+            return "🔄 Checking if your card is in the right orientation..."
+        
+        elif "Card needs rotation to portrait" in thought:
+            return "🔄 Your card needs to be rotated to portrait orientation..."
+        
+        elif "Card rotated to portrait successfully" in thought:
+            return "✅ Card rotated! Now it's in the correct portrait orientation."
+        
+        elif "Card is already in correct portrait orientation" in thought:
+            return "✅ Perfect! Your card is already in the right orientation."
+        
+        elif "Orientation verified - now in portrait" in thought:
+            return "✅ Orientation confirmed! Your card is now properly positioned."
         
         elif "remove_background" in thought and "Clean up" in thought:
             return "✂️ Removing the background to focus on your card..."
@@ -223,6 +238,7 @@ class AIAgent:
         """Default processing plan based on user options"""
         return {
             "steps": [
+                {"name": "check_orientation", "enabled": True, "reason": "Check if card needs rotation to portrait"},
                 {"name": "remove_background", "enabled": user_options.get("remove_background", True), "reason": "Clean up the card image"},
                 {"name": "identify_card", "enabled": user_options.get("identify", True), "reason": "Find out what card it is"},
                 {"name": "grade_card", "enabled": user_options.get("grade", True), "reason": "Check the card's condition"},
@@ -263,7 +279,43 @@ class AIAgent:
             self.log_thought(f"Card {card_index+1}: {step_name} - {step['reason']}", "step")
             
             try:
-                if step_name == "remove_background":
+                if step_name == "check_orientation":
+                    result = await self.call_mcp_tool("check_orientation", {"image_bytes": current_image})
+                    if result.get("success"):
+                        if result.get("needs_rotation"):
+                            # Card needs rotation - call rotate_image tool
+                            self.log_thought(f"Card {card_index+1}: Card needs rotation to portrait", "step")
+                            rotation_result = await self.call_mcp_tool("rotate_image", {
+                                "image_bytes": current_image,
+                                "angle": result.get("rotation_angle", -90),
+                                "expand": True,
+                                "fillcolor": "white"
+                            })
+                            
+                            if rotation_result.get("success"):
+                                current_image = rotation_result["rotated_image"]
+                                card_result["results"]["orientation_corrected"] = rotation_result["rotated_image"]
+                                card_result["steps_completed"].append("orientation_corrected")
+                                self.log_thought(f"Card {card_index+1}: Card rotated to portrait successfully", "success")
+                                
+                                # Verify the rotation worked
+                                verify_result = await self.call_mcp_tool("check_orientation", {"image_bytes": current_image})
+                                if verify_result.get("success") and not verify_result.get("needs_rotation"):
+                                    self.log_thought(f"Card {card_index+1}: Orientation verified - now in portrait", "success")
+                                else:
+                                    self.log_thought(f"Card {card_index+1}: Warning - orientation verification failed", "error")
+                            else:
+                                card_result["errors"].append(f"Rotation failed: {rotation_result.get('error')}")
+                                self.log_thought(f"Card {card_index+1}: Rotation failed", "error")
+                        else:
+                            # Card is already in correct orientation
+                            card_result["steps_completed"].append("orientation_verified")
+                            self.log_thought(f"Card {card_index+1}: Card is already in correct portrait orientation", "success")
+                    else:
+                        card_result["errors"].append(f"Orientation check failed: {result.get('error')}")
+                        self.log_thought(f"Card {card_index+1}: Orientation check failed", "error")
+                
+                elif step_name == "remove_background":
                     result = await self.call_mcp_tool("remove_background", {"image_bytes": current_image})
                     if result.get("success"):
                         current_image = result["processed_image"]

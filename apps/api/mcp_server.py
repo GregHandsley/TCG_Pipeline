@@ -43,6 +43,7 @@ class TCGMCPTools:
     def __init__(self):
         self.tools = {
             "check_orientation": self.check_orientation,
+            "rotate_image": self.rotate_image,
             "remove_background": self.remove_background,
             "identify_card": self.identify_card,
             "grade_card": self.grade_card,
@@ -52,7 +53,7 @@ class TCGMCPTools:
         }
     
     async def check_orientation(self, image_bytes: str) -> Dict[str, Any]:
-        """Check if card is in portrait orientation and rotate if needed"""
+        """Check if card is in portrait orientation (detection only)"""
         try:
             # Decode base64 string back to bytes
             if isinstance(image_bytes, str):
@@ -66,33 +67,24 @@ class TCGMCPTools:
             is_landscape = width > height
             
             if is_landscape:
-                # Rotate 90 degrees clockwise to make it portrait
-                rotated_image = image.rotate(-90, expand=True)
-                
-                # Convert back to bytes
-                img_buffer = io.BytesIO()
-                # Preserve original format if possible
-                if image.format:
-                    rotated_image.save(img_buffer, format=image.format)
-                else:
-                    rotated_image.save(img_buffer, format='PNG')
-                
-                rotated_bytes = img_buffer.getvalue()
-                
                 return {
                     "success": True,
-                    "was_rotated": True,
-                    "orientation": "landscape",
-                    "rotated_image": base64.b64encode(rotated_bytes).decode('utf-8'),
-                    "message": "Card was in landscape orientation and has been rotated to portrait"
+                    "needs_rotation": True,
+                    "current_orientation": "landscape",
+                    "target_orientation": "portrait",
+                    "rotation_angle": -90,  # Clockwise rotation
+                    "dimensions": {"width": width, "height": height},
+                    "message": "Card is in landscape orientation and needs to be rotated to portrait"
                 }
             else:
                 # Already in portrait orientation
                 return {
                     "success": True,
-                    "was_rotated": False,
-                    "orientation": "portrait",
-                    "rotated_image": base64.b64encode(image_bytes).decode('utf-8'),
+                    "needs_rotation": False,
+                    "current_orientation": "portrait",
+                    "target_orientation": "portrait",
+                    "rotation_angle": 0,
+                    "dimensions": {"width": width, "height": height},
                     "message": "Card is already in correct portrait orientation"
                 }
                 
@@ -101,6 +93,49 @@ class TCGMCPTools:
                 "success": False,
                 "error": str(e),
                 "message": "Orientation check failed"
+            }
+    
+    async def rotate_image(self, image_bytes: str, angle: int = -90, expand: bool = True, fillcolor: str = "white") -> Dict[str, Any]:
+        """Rotate image by specified angle using Pillow"""
+        try:
+            # Decode base64 string back to bytes
+            if isinstance(image_bytes, str):
+                image_bytes = base64.b64decode(image_bytes)
+            
+            # Open image with PIL
+            image = Image.open(io.BytesIO(image_bytes))
+            original_width, original_height = image.size
+            
+            # Rotate the image
+            rotated_image = image.rotate(angle, expand=expand, fillcolor=fillcolor)
+            new_width, new_height = rotated_image.size
+            
+            # Convert back to bytes
+            img_buffer = io.BytesIO()
+            # Preserve original format if possible
+            if image.format:
+                rotated_image.save(img_buffer, format=image.format)
+            else:
+                rotated_image.save(img_buffer, format='PNG')
+            
+            rotated_bytes = img_buffer.getvalue()
+            
+            return {
+                "success": True,
+                "rotated_image": base64.b64encode(rotated_bytes).decode('utf-8'),
+                "original_dimensions": {"width": original_width, "height": original_height},
+                "new_dimensions": {"width": new_width, "height": new_height},
+                "rotation_angle": angle,
+                "expanded": expand,
+                "fillcolor": fillcolor,
+                "message": f"Image rotated {angle} degrees successfully"
+            }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Image rotation failed"
             }
     
     async def remove_background(self, image_bytes: str) -> Dict[str, Any]:
@@ -346,7 +381,8 @@ async def list_tools():
     return {
         "tools": list(mcp_tools.tools.keys()),
         "descriptions": {
-            "check_orientation": "Check if card is in portrait orientation and rotate if needed",
+            "check_orientation": "Check if card is in portrait orientation (detection only)",
+            "rotate_image": "Rotate image by specified angle using Pillow",
             "remove_background": "Remove background from card image",
             "identify_card": "Identify the trading card",
             "grade_card": "Grade the card condition",
