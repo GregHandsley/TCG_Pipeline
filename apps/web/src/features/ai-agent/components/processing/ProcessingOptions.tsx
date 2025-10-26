@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProcessingOptions } from '../types';
+import { ProcessingOptions } from '../../types';
 
 interface ProcessingOptionsProps {
   options: ProcessingOptions;

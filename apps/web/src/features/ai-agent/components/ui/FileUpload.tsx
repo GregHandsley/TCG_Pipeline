@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { CardPair } from '../types';
-import { CardStatusIndicator } from './CardStatusIndicator';
+import { CardPair } from '../../types';
+import { CardStatusIndicator } from '../cards/CardStatusIndicator';
 
 interface FileUploadProps {
   files: File[];

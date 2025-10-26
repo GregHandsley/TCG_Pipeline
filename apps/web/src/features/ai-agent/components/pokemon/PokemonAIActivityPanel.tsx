@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgentThought } from '../types';
+import { AgentThought } from '../../types';
 
 interface PokemonAIActivityPanelProps {
   isOpen: boolean;

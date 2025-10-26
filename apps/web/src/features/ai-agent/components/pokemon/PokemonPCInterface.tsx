@@ -1,7 +1,7 @@
 import React from 'react';
-import { CardPair, CardStatus } from '../types';
+import { CardPair, CardStatus } from '../../types';
 import { ProfessorOak } from './ProfessorOak';
-import { CardStatusIndicator } from './CardStatusIndicator';
+import { CardStatusIndicator } from '../cards/CardStatusIndicator';
 import { PokemonErrorState } from './PokemonErrorState';
 import { PokemonLoadingState } from './PokemonLoadingState';
 import { PokemonEmptyState } from './PokemonEmptyState';

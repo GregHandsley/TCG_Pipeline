@@ -1,5 +1,5 @@
 import React from 'react';
-import { BatchResults } from '../types';
+import { BatchResults } from '../../types';
 
 interface PokemonResearchResultsProps {
   results: BatchResults | null;

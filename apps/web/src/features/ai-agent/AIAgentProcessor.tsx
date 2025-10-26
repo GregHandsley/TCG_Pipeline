@@ -2,13 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { ProcessingOptions } from './types';
 import { useCardPairing } from './hooks/useCardPairing';
 import { useAIProcessing } from './hooks/useAIProcessing';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { ProfessorOakDialogue } from './components/ProfessorOakDialogue';
-import { PokemonCardDisplay } from './components/PokemonCardDisplay';
-import { ProcessingOptionsComponent } from './components/ProcessingOptions';
-import { ProcessButton } from './components/ProcessButton';
-import { PokemonResearchResults } from './components/PokemonResearchResults';
-import { PokemonAIActivityPanel } from './components/PokemonAIActivityPanel';
+import { ErrorBoundary } from './components/ui';
+import { ProfessorOakDialogue, PokemonCardDisplay, PokemonResearchResults, PokemonAIActivityPanel } from './components/pokemon';
+import { ProcessingOptions as ProcessingOptionsComponent, ProcessButton } from './components/processing';
 import './styles/pokemon-ui.css';
 
 function AIAgentProcessor() {
@@ -16,8 +12,14 @@ function AIAgentProcessor() {
     files,
     cardPairs,
     cardStatuses,
+    drawCards,
     addFiles,
     removeFile,
+    removeCardFromPair,
+    moveCardFromDrawToPair,
+    addCardToDraw,
+    removeCardFromDraw,
+    updateCardSlot,
     clearAll,
     initializeCardStatuses,
     updateCardStatus,
@@ -109,14 +111,34 @@ function AIAgentProcessor() {
   const handleDeleteCard = (pairIndex: number, cardType: 'front' | 'back') => {
     if (isProcessing) return;
     
-    const pair = cardPairs[pairIndex];
-    if (!pair) return;
+    // Use the new removeCardFromPair function which works directly with cardPairs
+    // This prevents the index shifting issue that was causing random deletions
+    removeCardFromPair(pairIndex, cardType);
+  };
 
-    if (cardType === 'front' && pair.front) {
-      removeFile(files.indexOf(pair.front));
-    } else if (cardType === 'back' && pair.back) {
-      removeFile(files.indexOf(pair.back));
-    }
+  const handleUploadToSlot = (pairIndex: number, cardType: 'front' | 'back') => {
+    console.log('Upload to slot requested:', { pairIndex, cardType });
+    
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = false;
+    
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      const files = target.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        console.log('File selected for slot:', { fileName: file.name, fileType: file.type, pairIndex, cardType });
+        
+        // Update the specific slot with the new file
+        updateCardSlot(pairIndex, cardType, file);
+      }
+    };
+    
+    // Trigger the file input
+    input.click();
   };
 
   const handleMoveCard = (fromPairIndex: number, fromCardType: 'front' | 'back', toPairIndex: number, toCardType: 'front' | 'back') => {
@@ -155,18 +177,23 @@ function AIAgentProcessor() {
 
       {/* Card Display */}
       <PokemonCardDisplay
-        cardPairs={cardPairs}
-        cardStatuses={cardStatuses}
-        results={results?.results || null}
-        isProcessing={isProcessing}
-        onCardClick={(index) => {
-          if (results) {
-            setShowResults(true);
-          }
-        }}
-        onDeleteCard={handleDeleteCard}
-        onMoveCard={handleMoveCard}
-      />
+          cardPairs={cardPairs}
+          cardStatuses={cardStatuses}
+          drawCards={drawCards}
+          results={results?.results || null}
+          isProcessing={isProcessing}
+          onCardClick={(index) => {
+            if (results) {
+              setShowResults(true);
+            }
+          }}
+          onDeleteCard={handleDeleteCard}
+          onMoveCard={handleMoveCard}
+          onMoveCardFromDraw={moveCardFromDrawToPair}
+          onAddCardToDraw={addCardToDraw}
+          onRemoveCardFromDraw={removeCardFromDraw}
+          onUploadToSlot={handleUploadToSlot}
+        />
 
       {/* File Upload */}
       <div className="pc-panel">

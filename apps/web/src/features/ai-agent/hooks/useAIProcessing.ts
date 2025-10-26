@@ -61,12 +61,15 @@ export function useAIProcessing() {
       const eventSource = new EventSource(`http://localhost:8000/ai/agent/stream/${session_id}`);
       
       eventSource.onopen = () => {
-        // Connection opened successfully
+        console.log('EventSource connection opened successfully');
+        console.log('EventSource URL:', eventSource.url);
       };
       
       eventSource.onmessage = (event) => {
+        console.log('EventSource message received:', event.data);
         try {
           const thought = JSON.parse(event.data);
+          console.log('Parsed thought:', thought);
           
           // Validate thought object
           if (!thought || typeof thought !== 'object') {
@@ -75,6 +78,7 @@ export function useAIProcessing() {
           }
           
           if (thought.type === 'complete') {
+            console.log('Processing complete, closing EventSource');
             setCurrentStep('Complete');
             eventSource.close();
             setIsProcessing(false);
@@ -108,6 +112,11 @@ export function useAIProcessing() {
             // Add new thought to the log
             setThoughtLog(prev => [...prev, thought]);
             
+            // Update current step with the latest thought
+            if (thought.thought) {
+              setCurrentStep(thought.thought);
+            }
+            
             // Update card status based on thought content
             if (thought.thought && (thought.thought.includes('Card 1:') || thought.thought.includes('Card 2:'))) {
               const cardMatch = thought.thought.match(/Card (\d+):/);
@@ -122,6 +131,7 @@ export function useAIProcessing() {
           }
         } catch (error) {
           console.error('Error parsing thought:', error);
+          console.error('Raw event data:', event.data);
         }
       };
       

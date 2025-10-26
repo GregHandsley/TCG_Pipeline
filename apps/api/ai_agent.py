@@ -33,7 +33,7 @@ class AIAgent:
     def __init__(self):
         self.client = OpenAI(api_key=settings.openai_api_key)
         # Use host.docker.internal to reach the host machine from Docker
-        self.mcp_base_url = "http://localhost:8001"  # MCP Server URL
+        self.mcp_base_url = "http://host.docker.internal:8001"  # MCP Server URL
         self.thought_log = []
     
     def log_thought(self, thought: str, step: str = "processing"):
@@ -135,14 +135,18 @@ class AIAgent:
             if "image_bytes" in params and isinstance(params["image_bytes"], bytes):
                 import base64
                 params["image_bytes"] = base64.b64encode(params["image_bytes"]).decode('utf-8')
+                print(f"🔧 DEBUG: Converted image_bytes to base64, length: {len(params['image_bytes'])}")
             
+            print(f"🔧 DEBUG: About to call MCP server at {self.mcp_base_url}/mcp/call")
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{self.mcp_base_url}/mcp/call",
                     json={"method": method, "params": params},
                     timeout=120.0
                 )
+                print(f"🔧 DEBUG: MCP response status: {response.status_code}")
                 result = response.json()
+                print(f"🔧 DEBUG: MCP response: {result}")
                 
                 if result.get("error"):
                     raise Exception(f"MCP Error: {result['error']}")
@@ -272,6 +276,12 @@ class AIAgent:
         
         current_image = card.get("image_bytes")
         
+        # Validate initial image data
+        if not current_image:
+            card_result["errors"].append("No image data provided for card")
+            self.log_thought(f"Card {card_index+1}: No image data provided", "error")
+            return card_result
+        
         for step in plan["steps"]:
             if not step["enabled"]:
                 continue
@@ -281,42 +291,70 @@ class AIAgent:
             
             try:
                 if step_name == "check_orientation":
+                    # Prevent infinite rotation loops
+                    rotation_attempts = card_result.get("rotation_attempts", 0)
+                    if rotation_attempts >= 2:  # Reduced from 3 to 2
+                        self.log_thought(f"Card {card_index+1}: Skipping rotation - too many attempts", "error")
+                        card_result["errors"].append("Rotation loop detected - skipping orientation correction")
+                        continue
+                    
                     result = await self.call_mcp_tool("check_orientation", {"image_bytes": current_image})
                     if result.get("success"):
                         if result.get("needs_rotation"):
-                            # Card needs rotation - call rotate_image tool
+                            # Card needs rotation - call rotate_image tool with timeout
                             self.log_thought(f"Card {card_index+1}: Card needs rotation to portrait", "step")
-                            rotation_result = await self.call_mcp_tool("rotate_image", {
-                                "image_bytes": current_image,
-                                "angle": result.get("rotation_angle", -90),
-                                "expand": True,
-                                "fillcolor": "white"
-                            })
                             
-                            if rotation_result.get("success"):
-                                current_image = rotation_result["rotated_image"]
-                                card_result["results"]["orientation_corrected"] = rotation_result["rotated_image"]
-                                card_result["steps_completed"].append("orientation_corrected")
-                                self.log_thought(f"Card {card_index+1}: Card rotated to portrait successfully", "success")
+                            try:
+                                import asyncio
+                                rotation_result = await asyncio.wait_for(
+                                    self.call_mcp_tool("rotate_image", {
+                                        "image_bytes": current_image,
+                                        "angle": result.get("rotation_angle", -90),
+                                        "expand": True,
+                                        "fillcolor": "white"
+                                    }),
+                                    timeout=30.0  # 30 second timeout
+                                )
                                 
-                                # Verify the rotation worked
-                                verify_result = await self.call_mcp_tool("check_orientation", {"image_bytes": current_image})
-                                if verify_result.get("success") and not verify_result.get("needs_rotation"):
-                                    self.log_thought(f"Card {card_index+1}: Orientation verified - now in portrait", "success")
+                                if rotation_result.get("success"):
+                                    print(f"🔄 DEBUG: Rotation successful, updating current_image")
+                                    current_image = rotation_result["rotated_image"]
+                                    card_result["results"]["orientation_corrected"] = rotation_result["rotated_image"]
+                                    card_result["steps_completed"].append("orientation_corrected")
+                                    card_result["rotation_attempts"] = rotation_attempts + 1
+                                    self.log_thought(f"Card {card_index+1}: Card rotated to portrait successfully", "success")
+                                    
+                                    # Skip verification to prevent loops - assume rotation worked
+                                    self.log_thought(f"Card {card_index+1}: Orientation corrected - proceeding with processing", "success")
+                                    print(f"🔄 DEBUG: About to continue to next step")
+                                    continue  # Move to next step
                                 else:
-                                    self.log_thought(f"Card {card_index+1}: Warning - orientation verification failed", "error")
-                            else:
-                                card_result["errors"].append(f"Rotation failed: {rotation_result.get('error')}")
-                                self.log_thought(f"Card {card_index+1}: Rotation failed", "error")
+                                    card_result["errors"].append(f"Rotation failed: {rotation_result.get('error')}")
+                                    self.log_thought(f"Card {card_index+1}: Rotation failed", "error")
+                                    continue  # Move to next step even if rotation failed
+                                    
+                            except asyncio.TimeoutError:
+                                self.log_thought(f"Card {card_index+1}: Rotation timed out - skipping", "error")
+                                card_result["errors"].append("Rotation timed out - skipping orientation correction")
+                                card_result["rotation_attempts"] = rotation_attempts + 1
+                                continue  # Move to next step
+                                
                         else:
                             # Card is already in correct orientation
                             card_result["steps_completed"].append("orientation_verified")
                             self.log_thought(f"Card {card_index+1}: Card is already in correct portrait orientation", "success")
+                            continue  # Move to next step
                     else:
                         card_result["errors"].append(f"Orientation check failed: {result.get('error')}")
                         self.log_thought(f"Card {card_index+1}: Orientation check failed", "error")
+                        continue  # Move to next step even if orientation check failed
                 
                 elif step_name == "remove_background":
+                    if not current_image:
+                        card_result["errors"].append("No image data for background removal")
+                        self.log_thought(f"Card {card_index+1}: No image data for background removal", "error")
+                        continue
+                        
                     result = await self.call_mcp_tool("remove_background", {"image_bytes": current_image})
                     if result.get("success"):
                         current_image = result["processed_image"]
@@ -328,6 +366,11 @@ class AIAgent:
                         self.log_thought(f"Card {card_index+1}: Background removal failed", "error")
                 
                 elif step_name == "identify_card":
+                    if not current_image:
+                        card_result["errors"].append("No image data for card identification")
+                        self.log_thought(f"Card {card_index+1}: No image data for card identification", "error")
+                        continue
+                        
                     result = await self.call_mcp_tool("identify_card", {"image_bytes": current_image})
                     if result.get("success"):
                         card_result["results"]["identification"] = result["identification"]
@@ -340,6 +383,11 @@ class AIAgent:
                         self.log_thought(f"Card {card_index+1}: Identification failed", "error")
                 
                 elif step_name == "grade_card":
+                    if not current_image:
+                        card_result["errors"].append("No image data for card grading")
+                        self.log_thought(f"Card {card_index+1}: No image data for card grading", "error")
+                        continue
+                        
                     result = await self.call_mcp_tool("grade_card", {"image_bytes": current_image})
                     if result.get("success"):
                         card_result["results"]["grade"] = result["grade"]
