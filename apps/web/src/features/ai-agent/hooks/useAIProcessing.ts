@@ -7,6 +7,7 @@ export function useAIProcessing() {
   const [thoughtLog, setThoughtLog] = useState<AgentThought[]>([]);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [isActivityPanelOpen, setIsActivityPanelOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const startProcessing = async (cardPairs: CardPair[], options: ProcessingOptions, updateCardStatus: (index: number, status: any) => void) => {
     if (cardPairs.length === 0) {
@@ -19,6 +20,7 @@ export function useAIProcessing() {
       setResults(null);
       setThoughtLog([]);
       setCurrentStep('Initializing AI Agent...');
+      setError(null); // Clear any previous errors
       
       // Reset retry flag for new processing session
       (window as any).retryAttempted = false;
@@ -176,6 +178,7 @@ export function useAIProcessing() {
       
     } catch (error) {
       console.error('Processing error:', error);
+      setError(`Failed to start research: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setCurrentStep('Error occurred');
       setIsProcessing(false);
     }
@@ -195,6 +198,10 @@ export function useAIProcessing() {
     setCurrentStep('');
   };
 
+  const clearError = () => {
+    setError(null);
+  };
+
   return {
     isProcessing,
     results,
@@ -204,6 +211,8 @@ export function useAIProcessing() {
     setIsActivityPanelOpen,
     startProcessing,
     stopProcessing,
-    clearResults
-  };
+    clearResults,
+    error,
+    clearError
+  } as const;
 }

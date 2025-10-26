@@ -32,8 +32,10 @@ function AIAgentProcessor() {
     setIsActivityPanelOpen,
     startProcessing,
     stopProcessing,
-    clearResults
-  } = useAIProcessing();
+    clearResults,
+    error,
+    clearError
+  } = useAIProcessing() as any;
 
   const [options, setOptions] = React.useState<ProcessingOptions>({
     remove_background: true,
@@ -114,6 +116,8 @@ function AIAgentProcessor() {
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
         onClearAll={handleClearAll}
+        error={error}
+        onRetry={clearError}
       />
 
       <div className="pc-panel">

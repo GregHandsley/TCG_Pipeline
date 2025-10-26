@@ -2,6 +2,9 @@ import React from 'react';
 import { CardPair, CardStatus } from '../types';
 import { ProfessorOak } from './ProfessorOak';
 import { CardStatusIndicator } from './CardStatusIndicator';
+import { PokemonErrorState } from './PokemonErrorState';
+import { PokemonLoadingState } from './PokemonLoadingState';
+import { PokemonEmptyState } from './PokemonEmptyState';
 
 interface PokemonPCInterfaceProps {
   files: File[];
@@ -15,6 +18,8 @@ interface PokemonPCInterfaceProps {
   onDragOver: (e: React.DragEvent) => void;
   onDragEnter: (e: React.DragEvent) => void;
   onClearAll: () => void;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 export function PokemonPCInterface({
@@ -28,9 +33,74 @@ export function PokemonPCInterface({
   onDrop,
   onDragOver,
   onDragEnter,
-  onClearAll
+  onClearAll,
+  error,
+  onRetry
 }: PokemonPCInterfaceProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="pokemon-ui">
+        <ProfessorOak 
+          isProcessing={false}
+          currentStep="Error occurred"
+          thoughtCount={0}
+        />
+        <PokemonErrorState
+          title="Research Error"
+          message={error}
+          onRetry={onRetry}
+          errorType="error"
+        />
+      </div>
+    );
+  }
+
+  // Show loading state if processing
+  if (isProcessing && files.length === 0) {
+    return (
+      <div className="pokemon-ui">
+        <ProfessorOak 
+          isProcessing={isProcessing}
+          currentStep={currentStep}
+          thoughtCount={thoughtCount}
+        />
+        <PokemonLoadingState
+          message="Professor Oak is preparing the research lab..."
+          showProgress={false}
+        />
+      </div>
+    );
+  }
+
+  // Show empty state if no files
+  if (files.length === 0) {
+    return (
+      <div className="pokemon-ui">
+        <ProfessorOak 
+          isProcessing={isProcessing}
+          currentStep="Ready for research"
+          thoughtCount={thoughtCount}
+        />
+        <PokemonEmptyState
+          onUpload={() => fileInputRef.current?.click()}
+          title="No Pokémon Cards Found"
+          message="Upload some cards to start Professor Oak's research!"
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={onFileSelect}
+          style={{ display: 'none' }}
+          disabled={isProcessing}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="pokemon-ui">
