@@ -209,25 +209,44 @@ async def process_batch_async(
     Asynchronous batch processing that starts immediately and returns session ID
     """
     try:
-        # Convert uploaded files to card data
-        cards = []
-        for i, file in enumerate(files):
-            if not file.filename:
-                continue
-            
-            # Check for HEIC format
-            if file.filename.lower().endswith(('.heic', '.heif')):
-                raise HTTPException(400, f"HEIC format not supported for file: {file.filename}")
-            
-            image_bytes = await file.read()
-            cards.append({
-                "filename": file.filename,
-                "image_bytes": image_bytes,
-                "card_index": i
-            })
+        # Group files into pairs (front, back, front, back, ...)
+        # Files are expected to come in pairs: even index = front, odd index = back
+        card_pairs = []
+        for i in range(0, len(files), 2):
+            if i + 1 < len(files):
+                # We have both front and back
+                front_file = files[i]
+                back_file = files[i + 1]
+                
+                if not front_file.filename or not back_file.filename:
+                    continue
+                
+                # Check for HEIC format
+                if front_file.filename.lower().endswith(('.heic', '.heif')):
+                    raise HTTPException(400, f"HEIC format not supported for file: {front_file.filename}")
+                if back_file.filename.lower().endswith(('.heic', '.heif')):
+                    raise HTTPException(400, f"HEIC format not supported for file: {back_file.filename}")
+                
+                front_bytes = await front_file.read()
+                back_bytes = await back_file.read()
+                
+                # Store as a pair
+                card_pairs.append({
+                    "pair_index": len(card_pairs),
+                    "front": {
+                        "filename": front_file.filename,
+                        "image_bytes": front_bytes,
+                        "card_type": "front"
+                    },
+                    "back": {
+                        "filename": back_file.filename,
+                        "image_bytes": back_bytes,
+                        "card_type": "back"
+                    }
+                })
         
-        if not cards:
-            raise HTTPException(400, "No valid image files provided")
+        if not card_pairs:
+            raise HTTPException(400, "No valid card pairs provided (need front and back for each card)")
         
         # Create processing options
         options_dict = {
@@ -248,7 +267,7 @@ async def process_batch_async(
                 # Create a new AI Agent instance for this session
                 from ai_agent import AIAgent
                 agent = AIAgent()
-                results = await agent.process_batch(cards, options_dict, session_id)
+                results = await agent.process_batch_pairs(card_pairs, options_dict, session_id)
                 # Store results for later retrieval
                 background_tasks[session_id] = {
                     "status": "completed",
@@ -274,7 +293,7 @@ async def process_batch_async(
         return {
             "success": True,
             "session_id": session_id,
-            "message": f"Started processing {len(cards)} cards"
+            "message": f"Started processing {len(card_pairs)} card pair(s)"
         }
         
     except HTTPException:
@@ -350,9 +369,13 @@ async def stream_agent_thoughts(session_id: str):
     Stream AI Agent thoughts in real-time using Server-Sent Events
     """
     async def event_generator():
+        # Send initial connection message to keep EventSource open
+        yield f": connected\n\n"
+        
         last_count = 0
         timeout_count = 0
-        max_timeout = 60  # 60 seconds timeout
+        max_timeout = 120  # 120 seconds timeout (increased for longer processing)
+        check_interval = 0.5  # Check every 500ms
         
         while timeout_count < max_timeout:
             thoughts = get_realtime_thoughts(session_id)
@@ -374,23 +397,28 @@ async def stream_agent_thoughts(session_id: str):
                     yield f"data: {json.dumps({'type': 'error', 'message': f'Processing failed: {error_msg}'})}\n\n"
                     break
             
-            # If no new thoughts for 2 seconds, increment timeout
-            if len(thoughts) == last_count:
-                timeout_count += 1
-            else:
+            # If no new thoughts and no background task yet, wait a bit before timing out
+            if len(thoughts) == last_count and session_id not in background_tasks:
+                # Still waiting for processing to start, don't timeout yet
                 timeout_count = 0
             
-            await asyncio.sleep(0.5)  # Check every 500ms
+            # Only increment timeout if we've had thoughts but no new ones for a while
+            if len(thoughts) == last_count and session_id in background_tasks:
+                timeout_count += 1
+            
+            await asyncio.sleep(check_interval)
         
         # Timeout reached
         yield f"data: {json.dumps({'type': 'timeout', 'message': 'Processing timeout'})}\n\n"
     
-    return StreamingResponse(
+    response = StreamingResponse(
         event_generator(),
-        media_type="text/plain",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": "text/event-stream",
-        }
+        media_type="text/event-stream",
     )
+    
+    # Add required headers for SSE
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Connection"] = "keep-alive"
+    response.headers["X-Accel-Buffering"] = "no"  # Disable nginx buffering
+    
+    return response

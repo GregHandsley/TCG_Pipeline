@@ -22,10 +22,21 @@ export interface UploadedFile {
   pairId?: string;
 }
 
+export interface ImageUpdate {
+  pair_index: number;
+  card_type: 'front' | 'back';
+  image_type: 'orientation_corrected' | 'background_removed' | 'enhanced';
+  image_base64: string;
+  step: string;
+}
+
 export interface AgentThought {
   step: string;
   thought: string;
   timestamp: number;
+  image_update?: ImageUpdate;
+  pair_index?: number;  // Metadata for identified cards
+  card_name?: string;   // Metadata for identified cards
 }
 
 export interface ProcessingResult {
@@ -84,7 +95,15 @@ export interface BatchResults {
   thought_log: AgentThought[];
 }
 
+export interface ImageUpdateData {
+  cardType: 'front' | 'back';
+  imageBase64: string;
+  imageType: 'orientation_corrected' | 'background_removed' | 'enhanced';
+}
+
 export interface CardStatus {
   status: string;
   progress?: number;
+  imageUpdate?: ImageUpdateData;
+  identifiedName?: string;
 }

@@ -26,6 +26,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {
+        "message": "TCG Pipeline API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health/live",
+        "endpoints": {
+            "ai_agent": "/ai",
+            "review": "/review",
+            "debug": "/debug",
+            "ximilar": "/ximilar"
+        }
+    }
+
 @app.get("/health/live")
 def health_live():
     return {"status": "ok"}

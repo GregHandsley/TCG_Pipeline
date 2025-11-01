@@ -1,19 +1,22 @@
 import React from 'react';
 
 interface ProcessButtonProps {
-  files: File[];
+  cardPairs: Array<{ front?: File; back?: File }>;
   isProcessing: boolean;
   onStartProcessing: () => void;
   onStopProcessing: () => void;
 }
 
-export function ProcessButton({ files, isProcessing, onStartProcessing, onStopProcessing }: ProcessButtonProps) {
+export function ProcessButton({ cardPairs, isProcessing, onStartProcessing, onStopProcessing }: ProcessButtonProps) {
+  // Count pairs that have both front and back
+  const validPairsCount = cardPairs.filter(p => p.front && p.back).length;
+  
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         <button
           onClick={onStartProcessing}
-          disabled={files.length === 0 || isProcessing}
+          disabled={validPairsCount === 0 || isProcessing}
           className="pc-button primary"
           style={{ 
             fontSize: '10px',
@@ -21,7 +24,7 @@ export function ProcessButton({ files, isProcessing, onStartProcessing, onStopPr
             minWidth: '160px'
           }}
         >
-          {isProcessing ? `🔬 ANALYZING ${files.length} CARDS...` : `🚀 START RESEARCH (${files.length} CARD${files.length !== 1 ? 'S' : ''})`}
+          {isProcessing ? `🔬 ANALYZING ${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''}...` : `🚀 START RESEARCH (${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''})`}
         </button>
         
         {isProcessing && (

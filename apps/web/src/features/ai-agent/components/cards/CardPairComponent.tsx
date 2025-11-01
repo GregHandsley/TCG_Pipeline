@@ -41,26 +41,74 @@ export function CardPairComponent({
   useEffect(() => {
     console.log(`CardPair ${index} updated:`, {
       front: pair.front ? `${pair.front.name} (${pair.front.type})` : 'null',
-      back: pair.back ? `${pair.back.name} (${pair.back.type})` : 'null'
+      back: pair.back ? `${pair.back.name} (${pair.back.type})` : 'null',
+      status: status,
+      identifiedName: status?.identifiedName,
+      resultName: result?.results?.identification?.best?.name
     });
-  }, [pair.front, pair.back, index]);
+  }, [pair.front, pair.back, index, status, result]);
 
-  // Memoize URLs to prevent recreation on every render
-  const frontImageUrl = useMemo(() => {
+  // Store processed images for front and back separately
+  const [frontProcessedImage, setFrontProcessedImage] = React.useState<string | null>(null);
+  const [backProcessedImage, setBackProcessedImage] = React.useState<string | null>(null);
+  
+  // Store identified name in component state to force re-render
+  const [identifiedName, setIdentifiedName] = React.useState<string | null>(null);
+
+  // Update processed images when status changes
+  useEffect(() => {
+    if (status?.imageUpdate?.imageBase64) {
+      console.log(`🖼️ Image update for pair ${index}:`, {
+        cardType: status.imageUpdate.cardType,
+        imageType: status.imageUpdate.imageType,
+        hasImageData: !!status.imageUpdate.imageBase64,
+        imageLength: status.imageUpdate.imageBase64.length
+      });
+      const imageDataUrl = `data:image/png;base64,${status.imageUpdate.imageBase64}`;
+      if (status.imageUpdate.cardType === 'front') {
+        console.log(`✅ Updating front image for pair ${index}`);
+        setFrontProcessedImage(imageDataUrl);
+      } else if (status.imageUpdate.cardType === 'back') {
+        console.log(`✅ Updating back image for pair ${index}`);
+        setBackProcessedImage(imageDataUrl);
+      }
+    }
+  }, [status?.imageUpdate?.imageBase64, status?.imageUpdate?.cardType, index]);
+  
+  // Update identified name when status changes
+  useEffect(() => {
+    console.log(`🔍 CardPair ${index} - status.identifiedName: "${status?.identifiedName}", local identifiedName: "${identifiedName}"`);
+    if (status?.identifiedName && status.identifiedName !== identifiedName) {
+      console.log(`✨ Setting identified name for pair ${index}: "${status.identifiedName}"`);
+      setIdentifiedName(status.identifiedName);
+    }
+  }, [status?.identifiedName, index, identifiedName]);
+
+  // Memoize blob URLs for original files
+  const frontOriginalUrl = useMemo(() => {
     return pair.front ? URL.createObjectURL(pair.front) : null;
   }, [pair.front]);
 
-  const backImageUrl = useMemo(() => {
+  const backOriginalUrl = useMemo(() => {
     return pair.back ? URL.createObjectURL(pair.back) : null;
   }, [pair.back]);
 
-  // Cleanup URLs when component unmounts
+  // Get image URLs - prioritize processed images over originals
+  const frontImageUrl = frontProcessedImage || frontOriginalUrl;
+  const backImageUrl = backProcessedImage || backOriginalUrl;
+
+  // Cleanup URLs when component unmounts (only for Blob URLs, not base64)
   useEffect(() => {
     return () => {
-      if (frontImageUrl) URL.revokeObjectURL(frontImageUrl);
-      if (backImageUrl) URL.revokeObjectURL(backImageUrl);
+      // Only revoke Object URLs, not base64 data URLs
+      if (frontOriginalUrl) {
+        URL.revokeObjectURL(frontOriginalUrl);
+      }
+      if (backOriginalUrl) {
+        URL.revokeObjectURL(backOriginalUrl);
+      }
     };
-  }, [frontImageUrl, backImageUrl]);
+  }, [frontOriginalUrl, backOriginalUrl]);
 
   return (
     <div
@@ -432,7 +480,7 @@ export function CardPairComponent({
         </div>
       </div>
 
-      {/* Card Info */}
+      {/* Card Info - Always visible */}
       <div style={{ 
         fontSize: '10px', 
         lineHeight: '1.4', 
@@ -440,26 +488,46 @@ export function CardPairComponent({
         background: 'rgba(74, 144, 226, 0.1)',
         padding: '8px',
         borderRadius: '8px',
-        border: '2px solid rgba(74, 144, 226, 0.2)'
+        border: '2px solid rgba(74, 144, 226, 0.2)',
+        minHeight: '40px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
       }}>
-        <div style={{ 
-          fontWeight: 'bold', 
-          color: 'var(--pokemon-dark-blue)', 
-          marginBottom: '6px',
-          fontSize: '12px'
-        }}>
-          {pair.name || `PAIR ${index + 1}`}
+        {/* Card Name - Always visible, updates in real-time */}
+        <div 
+          style={{ 
+            fontWeight: 'bold', 
+            color: identifiedName ? 'var(--pokemon-green)' : 'var(--pokemon-dark-blue)', 
+            marginBottom: '6px',
+            fontSize: '12px',
+            minHeight: '18px',
+            display: 'block',
+            visibility: 'visible',
+            opacity: 1,
+            width: '100%',
+            overflow: 'visible',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis'
+          }}
+          title={`Result: ${result?.results.identification?.best?.name || 'none'}, Status: ${identifiedName || 'none'}, Pair: ${pair.name || 'none'}`}
+        >
+          {(() => {
+            const displayName = result?.results.identification?.best?.name || identifiedName || pair.name || `CARD ${index + 1}`;
+            console.log(`🏷️ CardPair ${index} displaying: "${displayName}" (result: ${result?.results.identification?.best?.name}, identifiedName: ${identifiedName}, pair.name: ${pair.name})`);
+            return displayName;
+          })()}
         </div>
         
-        {result?.results.identification && (
-          <div style={{ color: 'var(--pokemon-blue)', marginBottom: '3px' }}>
-            🔍 {result.results.identification.best?.name || 'Unknown'}
+        {result?.results.identification && result.results.identification.best?.set && (
+          <div style={{ color: 'var(--pokemon-blue)', marginBottom: '3px', fontSize: '10px' }}>
+            📦 {result.results.identification.best.set}
           </div>
         )}
         
         {result?.results.grade?.records?.[0]?.grades && (
           <div style={{ color: 'var(--pokemon-yellow)', marginBottom: '3px' }}>
-            📊 Grade: {result.results.grade.records[0].grades.final}/10
+            📊 Condition: {result.results.grade.records[0].grades.condition}
           </div>
         )}
         

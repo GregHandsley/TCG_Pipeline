@@ -65,11 +65,29 @@ export function useAIProcessing() {
         console.log('EventSource URL:', eventSource.url);
       };
       
+      // Track which card pair is currently being processed (shared across all messages)
+      let currentPairIndex: number | null = null;
+      
       eventSource.onmessage = (event) => {
         console.log('EventSource message received:', event.data);
         try {
           const thought = JSON.parse(event.data);
           console.log('Parsed thought:', thought);
+          
+          // Log metadata specifically for identification
+          if (thought.pair_index !== undefined || thought.card_name) {
+            console.log(`🔍 METADATA FOUND: pair_index=${thought.pair_index}, card_name=${thought.card_name}`);
+          }
+          
+          // Debug: Check for image updates
+          if (thought.image_update) {
+            console.log('🖼️ Found image_update in thought:', {
+              pair_index: thought.image_update.pair_index,
+              card_type: thought.image_update.card_type,
+              image_type: thought.image_update.image_type,
+              hasImageData: !!thought.image_update.image_base64
+            });
+          }
           
           // Validate thought object
           if (!thought || typeof thought !== 'object') {
@@ -117,11 +135,106 @@ export function useAIProcessing() {
               setCurrentStep(thought.thought);
             }
             
+            // Handle image updates for real-time preview
+            if (thought.image_update) {
+              const { pair_index, card_type, image_base64, image_type } = thought.image_update;
+              console.log('📸 Image update received:', { pair_index, card_type, image_type });
+              updateCardStatus(pair_index, {
+                imageUpdate: {
+                  cardType: card_type,
+                  imageBase64: image_base64,
+                  imageType: image_type
+                }
+              });
+            }
+            
+            // Track which card pair is currently being processed from thoughts that mention it
+            if (thought.thought) {
+              const cardMatch = thought.thought.match(/Card (?:pair )?(\d+)/);
+              if (cardMatch) {
+                currentPairIndex = parseInt(cardMatch[1]) - 1;
+                console.log(`📍 Tracking pair index: ${currentPairIndex} from thought: "${thought.thought}"`);
+              }
+            }
+            
+            // Check if thought has identification metadata (pair_index + card_name)
+            // This is the most reliable way to detect identified cards
+            if (thought.pair_index !== undefined && thought.card_name) {
+              const cardIndex = thought.pair_index;
+              const cardName = thought.card_name;
+              console.log(`🆔 Card identified via METADATA: "${cardName}" for pair ${cardIndex}`);
+              console.log(`📤 Calling updateCardStatus with identifiedName: "${cardName}"`);
+              updateCardStatus(cardIndex, {
+                identifiedName: cardName
+              });
+              console.log(`✅ updateCardStatus called successfully via METADATA`);
+            } 
+            // Fallback: Try to extract card name from thought text (for backward compatibility)
+            else if (thought.thought) {
+              console.log(`🔍 Checking thought for card identification: "${thought.thought}"`);
+              let cardName = null;
+              
+              // Pattern 1: "Aha! I believe this is a {name}!" or "I believe this is a {name}!"
+              // This matches after _make_thought_friendly transforms it
+              const pattern1 = thought.thought.match(/(?:Aha!\s*)?I believe this is a\s+([^!]+?)!/i);
+              if (pattern1) {
+                cardName = pattern1[1].trim();
+                console.log(`🔍 Pattern 1 (I believe) matched: "${cardName}" from "${thought.thought}"`);
+              }
+              
+              // Pattern 2: "What an interesting find! This {name} looks great!"
+              if (!cardName) {
+                const pattern2 = thought.thought.match(/What an interesting find!\s+This\s+([^!.]+?)\s+looks great!/i);
+                if (pattern2) {
+                  cardName = pattern2[1].trim();
+                  console.log(`🔍 Pattern 2 (interesting find) matched: "${cardName}" from "${thought.thought}"`);
+                }
+              }
+              
+              // Pattern 3: "Identified as {name}"
+              if (!cardName) {
+                const pattern3 = thought.thought.match(/Identified as\s+([^(]+?)(?:\s*\(|,|\.|!|$)/i);
+                if (pattern3) {
+                  cardName = pattern3[1].trim();
+                  console.log(`🔍 Pattern 3 (identified as) matched: "${cardName}" from "${thought.thought}"`);
+                }
+              }
+              
+              if (cardName) {
+                // Try to get pair index from the current thought first
+                let cardIndex = null;
+                const cardMatch = thought.thought.match(/Card (?:pair )?(\d+)/);
+                if (cardMatch) {
+                  cardIndex = parseInt(cardMatch[1]) - 1;
+                  console.log(`📌 Found pair index ${cardIndex} in thought message`);
+                } else if (currentPairIndex !== null) {
+                  // Fall back to the currently tracked pair index
+                  cardIndex = currentPairIndex;
+                  console.log(`📌 Using tracked pair index ${cardIndex}`);
+                }
+                
+                if (cardIndex !== null) {
+                  console.log(`🆔 Card identified in real-time: "${cardName}" for pair ${cardIndex}`);
+                  console.log(`📤 Calling updateCardStatus with identifiedName: "${cardName}"`);
+                  updateCardStatus(cardIndex, {
+                    identifiedName: cardName
+                  });
+                  console.log(`✅ updateCardStatus called successfully`);
+                } else {
+                  console.warn(`⚠️ Could not determine pair index for identified card: "${cardName}"`);
+                }
+              } else {
+                console.log(`🔍 No card name extracted from thought: "${thought.thought}"`);
+              }
+            }
+            
             // Update card status based on thought content
-            if (thought.thought && (thought.thought.includes('Card 1:') || thought.thought.includes('Card 2:'))) {
-              const cardMatch = thought.thought.match(/Card (\d+):/);
+            if (thought.thought && (thought.thought.includes('Card pair') || thought.thought.includes('Card 1:') || thought.thought.includes('Card 2:'))) {
+              // Match "Card pair X" or "Card X"
+              const cardMatch = thought.thought.match(/Card (?:pair )?(\d+)/);
               if (cardMatch) {
                 const cardIndex = parseInt(cardMatch[1]) - 1;
+                currentPairIndex = cardIndex; // Update tracked pair index
                 updateCardStatus(cardIndex, { 
                   status: 'processing',
                   progress: thought.step === 'success' ? 100 : 50
@@ -140,10 +253,66 @@ export function useAIProcessing() {
         console.log('EventSource readyState:', eventSource.readyState);
         console.log('EventSource URL:', eventSource.url);
         
+        // EventSource.CONNECTING = 0, EventSource.OPEN = 1, EventSource.CLOSED = 2
         if (eventSource.readyState === EventSource.CLOSED) {
-          setCurrentStep('Connection closed - processing may have completed');
-          setIsProcessing(false);
+          // Connection was closed - could be normal completion or error
+          console.log('EventSource connection closed');
+          
+          // Check if we're still processing - if so, it might be an error
+          if (isProcessing) {
+            setCurrentStep('Connection closed - checking status...');
+            
+            // Try to check if processing completed by fetching results
+            fetch(`http://localhost:8000/ai/batch/results/${session_id}`)
+              .then(response => {
+                if (response.ok) {
+                  return response.json();
+                }
+                throw new Error('Results not ready');
+              })
+              .then(data => {
+                if (data.results) {
+                  setResults(data.results);
+                  setCurrentStep('Complete');
+                  setIsProcessing(false);
+                  updateCardStatus(-1, { status: 'completed' });
+                } else {
+                  setCurrentStep('Connection closed - please check if processing completed');
+                  setIsProcessing(false);
+                }
+              })
+              .catch(() => {
+                // Retry connection once if still processing
+                if (isProcessing && !(window as any).retryAttempted) {
+                  (window as any).retryAttempted = true;
+                  setTimeout(() => {
+                    if (isProcessing) {
+                      console.log('Retrying EventSource connection...');
+                      const retryEventSource = new EventSource(`http://localhost:8000/ai/agent/stream/${session_id}`);
+                      retryEventSource.onmessage = eventSource.onmessage;
+                      retryEventSource.onerror = (retryError) => {
+                        console.error('Retry EventSource error:', retryError);
+                        retryEventSource.close();
+                        setCurrentStep('Connection failed - please try again');
+                        setIsProcessing(false);
+                      };
+                      retryEventSource.onopen = () => {
+                        console.log('Retry EventSource connection opened');
+                        (window as any).retryAttempted = false;
+                      };
+                    }
+                  }, 2000);
+                } else {
+                  setCurrentStep('Connection failed - please try again');
+                  setIsProcessing(false);
+                }
+              });
+          }
+        } else if (eventSource.readyState === EventSource.CONNECTING) {
+          // Still connecting - this is normal, just wait
+          console.log('EventSource still connecting...');
         } else {
+          // Other error state
           setCurrentStep('Connection error - retrying...');
           eventSource.close();
           

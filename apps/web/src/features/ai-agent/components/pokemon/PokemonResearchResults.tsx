@@ -1,4 +1,5 @@
 import React from 'react';
+import { ImageModal } from '../ui/ImageModal';
 import { BatchResults } from '../../types';
 
 interface PokemonResearchResultsProps {
@@ -8,6 +9,7 @@ interface PokemonResearchResultsProps {
 }
 
 export function PokemonResearchResults({ results, isVisible, onClose }: PokemonResearchResultsProps) {
+  const [enlargedImage, setEnlargedImage] = React.useState<string | null>(null);
   if (!results || !isVisible) return null;
 
   return (
@@ -143,7 +145,6 @@ export function PokemonResearchResults({ results, isVisible, onClose }: PokemonR
                   <div style={{ color: 'var(--pc-text)' }}>
                     <div>Name: {result.results.identification.best?.name}</div>
                     <div>Set: {result.results.identification.best?.set}</div>
-                    <div>Confidence: {Math.round((result.results.identification.confidence || 0) * 100)}%</div>
                   </div>
                 </div>
               )}
@@ -155,9 +156,60 @@ export function PokemonResearchResults({ results, isVisible, onClose }: PokemonR
                     📊 CONDITION ASSESSMENT
                   </div>
                   <div style={{ color: 'var(--pc-text)' }}>
-                    <div>Overall Grade: {result.results.grade.records[0].grades.final}/10</div>
-                    <div>Condition: {result.results.grade.records[0].grades.condition}</div>
+                    <div>Overall Condition: {result.results.grade.records[0].grades.condition}</div>
+                    <div style={{ fontSize: '6px', color: 'var(--pc-text)', opacity: 0.7, marginTop: '2px' }}>
+                      (Average of front and back card condition assessment)
+                    </div>
                   </div>
+                  {/* Grading Images from AI */}
+                  {result.results.grade.records[0]._full_url_card && (
+                    <div style={{ marginTop: '4px' }}>
+                      <div style={{ fontSize: '6px', color: 'var(--pokemon-blue)', marginBottom: '2px' }}>
+                        🔬 AI Grading Analysis Image:
+                      </div>
+                      <img
+                        src={result.results.grade.records[0]._full_url_card}
+                        alt="AI Grading Analysis"
+                        style={{
+                          width: '100%',
+                          maxWidth: '200px',
+                          border: '1px solid var(--pc-border)',
+                          borderRadius: '4px',
+                          marginTop: '2px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setEnlargedImage(result.results.grade.records[0]._full_url_card || null)}
+                        onError={(e) => {
+                          // If full URL fails, try exact URL
+                          if (result.results.grade?.records?.[0]?._exact_url_card) {
+                            (e.target as HTMLImageElement).src = result.results.grade.records[0]._exact_url_card;
+                          } else {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                  {result.results.grade.records[0]._exact_url_card && !result.results.grade.records[0]._full_url_card && (
+                    <div style={{ marginTop: '4px' }}>
+                      <div style={{ fontSize: '6px', color: 'var(--pokemon-blue)', marginBottom: '2px' }}>
+                        🔬 AI Grading Analysis Image:
+                      </div>
+                      <img
+                        src={result.results.grade.records[0]._exact_url_card}
+                        alt="AI Grading Analysis"
+                        style={{
+                          width: '100%',
+                          maxWidth: '200px',
+                          border: '1px solid var(--pc-border)',
+                          borderRadius: '4px',
+                          marginTop: '2px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setEnlargedImage(result.results.grade.records[0]._exact_url_card || null)}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -171,8 +223,8 @@ export function PokemonResearchResults({ results, isVisible, onClose }: PokemonR
                     <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>
                       {result.results.listing_description.title}
                     </div>
-                    <div style={{ fontSize: '7px', lineHeight: '1.2' }}>
-                      {result.results.listing_description.description?.substring(0, 120)}...
+                    <div style={{ fontSize: '7px', lineHeight: '1.2', whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                      {result.results.listing_description.description}
                     </div>
                   </div>
                 </div>
@@ -221,6 +273,13 @@ export function PokemonResearchResults({ results, isVisible, onClose }: PokemonR
           📧 SHARE RESULTS
         </button>
       </div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        imageUrl={enlargedImage}
+        alt="AI Grading Analysis (Enlarged)"
+        onClose={() => setEnlargedImage(null)}
+      />
     </div>
   );
 }

@@ -58,9 +58,9 @@ export function CardTile({ file, index, status, progress, result, onRemove }: Ca
         
         {result?.results.identification && (
           <div className="space-y-1 text-xs text-gray-600">
-            <div>Confidence: {Math.round((result.results.identification.confidence || 0) * 100)}%</div>
+            <div>Set: {result.results.identification.best?.set}</div>
             {result.results.grade?.records?.[0]?.grades && (
-              <div>Grade: {result.results.grade.records[0].grades.final}/10</div>
+              <div>Condition: {result.results.grade.records[0].grades.condition}</div>
             )}
           </div>
         )}

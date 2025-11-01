@@ -1,11 +1,13 @@
 import React from 'react';
 import { BatchResults } from '../../types';
+import { ImageModal } from '../ui/ImageModal';
 
 interface ProcessingResultsProps {
   results: BatchResults;
 }
 
 export function ProcessingResults({ results }: ProcessingResultsProps) {
+  const [enlargedImage, setEnlargedImage] = React.useState<string | null>(null);
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Processing Results</h2>
@@ -48,7 +50,6 @@ export function ProcessingResults({ results }: ProcessingResultsProps) {
                 <div className="text-sm text-gray-600">
                   <div>Name: {result.results.identification.best?.name}</div>
                   <div>Set: {result.results.identification.best?.set}</div>
-                  <div>Confidence: {Math.round((result.results.identification.confidence || 0) * 100)}%</div>
                 </div>
               </div>
             )}
@@ -56,11 +57,44 @@ export function ProcessingResults({ results }: ProcessingResultsProps) {
             {/* Grade */}
             {result.results.grade?.records?.[0]?.grades && (
               <div className="mb-3">
-                <h4 className="text-sm font-medium text-gray-800 mb-1">📊 Grade</h4>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">📊 Condition Assessment</h4>
                 <div className="text-sm text-gray-600">
-                  <div>Overall: {result.results.grade.records[0].grades.final}/10</div>
-                  <div>Condition: {result.results.grade.records[0].grades.condition}</div>
+                  <div>Overall Condition: {result.results.grade.records[0].grades.condition}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    (Average of front and back card condition assessment)
+                  </div>
                 </div>
+                {/* Grading Images from AI */}
+                {result.results.grade.records[0]._full_url_card && (
+                  <div className="mt-2">
+                    <div className="text-xs text-blue-600 mb-1">🔬 AI Grading Analysis Image:</div>
+                    <img
+                      src={result.results.grade.records[0]._full_url_card}
+                      alt="AI Grading Analysis"
+                      className="w-full max-w-xs border border-gray-300 rounded cursor-pointer hover:opacity-90"
+                      onClick={() => setEnlargedImage(result.results.grade.records[0]._full_url_card || null)}
+                      onError={(e) => {
+                        // If full URL fails, try exact URL
+                        if (result.results.grade?.records?.[0]?._exact_url_card) {
+                          (e.target as HTMLImageElement).src = result.results.grade.records[0]._exact_url_card;
+                        } else {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                {result.results.grade.records[0]._exact_url_card && !result.results.grade.records[0]._full_url_card && (
+                  <div className="mt-2">
+                    <div className="text-xs text-blue-600 mb-1">🔬 AI Grading Analysis Image:</div>
+                    <img
+                      src={result.results.grade.records[0]._exact_url_card}
+                      alt="AI Grading Analysis"
+                      className="w-full max-w-xs border border-gray-300 rounded cursor-pointer hover:opacity-90"
+                      onClick={() => setEnlargedImage(result.results.grade.records[0]._exact_url_card || null)}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -70,7 +104,7 @@ export function ProcessingResults({ results }: ProcessingResultsProps) {
                 <h4 className="text-sm font-medium text-gray-800 mb-1">📝 eBay Listing</h4>
                 <div className="text-sm text-gray-600">
                   <div className="font-medium">{result.results.listing_description.title}</div>
-                  <div className="mt-1 text-xs">{result.results.listing_description.description?.substring(0, 100)}...</div>
+                  <div className="mt-1 text-xs whitespace-pre-wrap break-words">{result.results.listing_description.description}</div>
                 </div>
               </div>
             )}
@@ -87,6 +121,13 @@ export function ProcessingResults({ results }: ProcessingResultsProps) {
           </div>
         ))}
       </div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        imageUrl={enlargedImage}
+        alt="AI Grading Analysis (Enlarged)"
+        onClose={() => setEnlargedImage(null)}
+      />
     </div>
   );
 }

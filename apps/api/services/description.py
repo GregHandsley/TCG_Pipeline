@@ -76,41 +76,77 @@ def build_listing_description(
 
     # ---- Title (consistent pattern) ----
     # eBay often truncates around 80–120 chars; we stay concise but rich.
-    title_core = f"{name} #{number} | {set_name}"
+    # No [REVIEW REQUIRED] prefix - keep title clean for customers
+    title = f"{name} #{number} | {set_name}"
     if rarity and rarity != "—":
-        title_core += f" | {rarity}"
+        title += f" | {rarity}"
     if condition:
-        title_core += f" | {condition}"
-    title = f"[REVIEW REQUIRED] {title_core}" if needsManualReview else title_core
+        title += f" | {condition}"
 
-    # ---- Intro: benefit-forward, no confidence % ----
+    # ---- Intro: benefit-forward, highlights AI grading ----
     intro = (
-        f"{name} from the {set_name} set — professionally graded using AI-based image analysis "
-        f"to provide consistent, transparent condition assessment for collectors."
+        f"{name} from the {set_name} set. This card has been professionally analyzed using advanced AI grading technology "
+        f"that examines every detail including corners, edges, surface quality, and centering to provide you with a "
+        f"comprehensive, unbiased condition assessment."
     )
 
     # ---- Highlights (bullets) ----
-    # Keep benefits first, then feature. Avoid jargon.
+    # Keep benefits first, then feature. Avoid jargon. NO NUMERIC GRADES or CONFIDENCE.
     highlights: list[str] = []
-    if condition or final_grade:
-        cond_line = "Condition: "
-        parts = []
-        if condition:
-            parts.append(str(condition))
-        if final_grade:
-            parts.append(f"Final Grade: {final_grade}")
-        highlights.append(cond_line + " • ".join(parts))
-    # component grades
-    comps = []
-    if corners is not None:  comps.append(f"Corners {corners}")
-    if edges is not None:    comps.append(f"Edges {edges}")
-    if surface is not None:  comps.append(f"Surface {surface}")
-    if centering is not None:comps.append(f"Centering {centering}")
-    if comps:
-        highlights.append("Subgrades: " + ", ".join(comps))
-    # benefits
-    highlights.append("Assessed with AI for consistent, unbiased grading — buy with confidence.")
-    highlights.append("Ideal for collectors seeking quality and clarity on condition.")
+    
+    # Condition (text only, no numbers)
+    if condition:
+        highlights.append(f"Overall Condition: {condition}")
+    
+    # Detailed condition assessment
+    condition_details = []
+    if corners is not None:
+        if corners >= 9.5:
+            condition_details.append("excellent corner sharpness with minimal wear")
+        elif corners >= 8.5:
+            condition_details.append("very good corners with slight edge wear")
+        elif corners >= 7.5:
+            condition_details.append("good corners showing some visible wear")
+        else:
+            condition_details.append("corners showing noticeable wear and rounding")
+    
+    if edges is not None:
+        if edges >= 9.5:
+            condition_details.append("crisp, clean edges with no chipping")
+        elif edges >= 8.5:
+            condition_details.append("very good edges with minimal wear")
+        elif edges >= 7.5:
+            condition_details.append("edges showing some minor wear")
+        else:
+            condition_details.append("edges with visible wear and potential damage")
+    
+    if surface is not None:
+        if surface >= 9.5:
+            condition_details.append("pristine surface with excellent gloss and no scratches")
+        elif surface >= 8.5:
+            condition_details.append("excellent surface with minimal imperfections")
+        elif surface >= 7.5:
+            condition_details.append("good surface with some visible wear or minor scratches")
+        else:
+            condition_details.append("surface showing noticeable scratches, scuffs, or wear")
+    
+    if centering is not None:
+        if centering >= 9.5:
+            condition_details.append("excellent centering with perfect alignment")
+        elif centering >= 8.5:
+            condition_details.append("very good centering, slightly off-center")
+        elif centering >= 7.5:
+            condition_details.append("acceptable centering with noticeable offset")
+        else:
+            condition_details.append("off-center with significant alignment issues")
+    
+    if condition_details:
+        highlights.append("Detailed Assessment: " + "; ".join(condition_details))
+    
+    # AI grading highlight
+    highlights.append("AI Professional Grading: This card underwent comprehensive AI analysis using advanced image recognition "
+                     "to evaluate every aspect of condition. The assessment is objective, consistent, and detailed.")
+    highlights.append("Quality Assurance: Graded using the same rigorous standards applied to all cards for fair, accurate evaluation.")
 
     # ---- Details (plain, honest facts) ----
     details_lines: list[str] = []
@@ -125,8 +161,9 @@ def build_listing_description(
 
     # ---- Photos guidance ----
     photos_lines = [
-        "Photos: High-quality images show the exact card you’ll receive.",
-        "Any minor imperfections visible in photos have been considered within the AI grading.",
+        "Photos: High-resolution images captured under professional lighting to accurately represent condition.",
+        "AI Analysis: Every photo has been analyzed by AI grading software that detects and assesses even minor imperfections.",
+        "Transparency: Any visible wear, scratches, or condition issues shown in photos have been evaluated and included in the assessment above.",
     ]
 
     # ---- SEO / Keywords (natural terms) ----

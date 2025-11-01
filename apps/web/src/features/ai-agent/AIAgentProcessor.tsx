@@ -68,10 +68,22 @@ function AIAgentProcessor() {
   };
 
   const handleOptionChange = (option: keyof ProcessingOptions) => {
-    setOptions(prev => ({
-      ...prev,
-      [option]: !prev[option]
-    }));
+    setOptions(prev => {
+      const newOptions = { ...prev, [option]: !prev[option] };
+      
+      // If enabling description, ensure identify and grade are also enabled
+      if (option === 'generate_description' && newOptions.generate_description) {
+        newOptions.identify = true;
+        newOptions.grade = true;
+      }
+      
+      // If disabling identify or grade while description is enabled, also disable description
+      if ((option === 'identify' || option === 'grade') && !newOptions[option] && prev.generate_description) {
+        newOptions.generate_description = false;
+      }
+      
+      return newOptions;
+    });
   };
 
   // Drag and drop handlers
@@ -256,7 +268,7 @@ function AIAgentProcessor() {
       {/* Process Button */}
       <div className="pc-panel">
         <ProcessButton
-          files={files}
+          cardPairs={cardPairs}
           isProcessing={isProcessing}
           onStartProcessing={handleStartProcessing}
           onStopProcessing={stopProcessing}

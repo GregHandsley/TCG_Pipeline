@@ -99,11 +99,20 @@ export function useCardPairing() {
     setCardStatuses(initialStatuses);
   };
 
-  const updateCardStatus = (index: number, status: CardStatus) => {
-    setCardStatuses(prev => ({
-      ...prev,
-      [index]: status
-    }));
+  const updateCardStatus = (index: number, status: CardStatus | Partial<CardStatus>) => {
+    setCardStatuses(prev => {
+      const currentStatus = prev[index] || { status: 'pending' };
+      const newStatus = { ...currentStatus, ...status } as CardStatus;
+      console.log(`🔄 Updating status for pair ${index}:`, {
+        oldStatus: currentStatus,
+        newStatus: newStatus,
+        identifiedName: newStatus.identifiedName
+      });
+      return {
+        ...prev,
+        [index]: newStatus
+      };
+    });
   };
 
   const removeCardFromPair = (pairIndex: number, cardType: 'front' | 'back') => {

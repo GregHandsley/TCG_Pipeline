@@ -1,11 +1,13 @@
 import React from 'react';
 import { BatchResults } from '../../types';
+import { ImageModal } from '../ui/ImageModal';
 
 interface PokemonProcessingResultsProps {
   results: BatchResults | null;
 }
 
 export function PokemonProcessingResults({ results }: PokemonProcessingResultsProps) {
+  const [enlargedImage, setEnlargedImage] = React.useState<string | null>(null);
   if (!results) return null;
 
   return (
@@ -108,15 +110,40 @@ export function PokemonProcessingResults({ results }: PokemonProcessingResultsPr
                   <div style={{ color: 'var(--pokemon-blue)' }}>🔍 IDENTIFICATION</div>
                   <div>NAME: {result.results.identification.best?.name}</div>
                   <div>SET: {result.results.identification.best?.set}</div>
-                  <div>CONFIDENCE: {Math.round((result.results.identification.confidence || 0) * 100)}%</div>
                 </div>
               )}
 
               {result.results.grade?.records?.[0]?.grades && (
                 <div style={{ marginBottom: '4px' }}>
-                  <div style={{ color: 'var(--pokemon-yellow)' }}>📊 GRADE</div>
-                  <div>OVERALL: {result.results.grade.records[0].grades.final}/10</div>
-                  <div>CONDITION: {result.results.grade.records[0].grades.condition}</div>
+                  <div style={{ color: 'var(--pokemon-yellow)' }}>📊 CONDITION ASSESSMENT</div>
+                  <div>OVERALL CONDITION: {result.results.grade.records[0].grades.condition}</div>
+                  <div style={{ fontSize: '5px', opacity: 0.7 }}>(Average of front & back)</div>
+                  {/* Grading Images from AI */}
+                  {(result.results.grade.records[0]._full_url_card || result.results.grade.records[0]._exact_url_card) && (
+                    <div style={{ marginTop: '2px' }}>
+                      <img
+                        src={result.results.grade.records[0]._full_url_card || result.results.grade.records[0]._exact_url_card}
+                        alt="AI Grading Analysis"
+                        style={{
+                          width: '100%',
+                          maxWidth: '120px',
+                          border: '1px solid var(--pc-border)',
+                          borderRadius: '2px',
+                          marginTop: '2px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setEnlargedImage(result.results.grade.records[0]._full_url_card || result.results.grade.records[0]._exact_url_card || null)}
+                        onError={(e) => {
+                          // Try exact URL if full URL fails
+                          if (result.results.grade?.records?.[0]?._exact_url_card && (e.target as HTMLImageElement).src !== result.results.grade.records[0]._exact_url_card) {
+                            (e.target as HTMLImageElement).src = result.results.grade.records[0]._exact_url_card;
+                          } else {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -141,6 +168,13 @@ export function PokemonProcessingResults({ results }: PokemonProcessingResultsPr
           </div>
         ))}
       </div>
+      
+      {/* Image Modal */}
+      <ImageModal
+        imageUrl={enlargedImage}
+        alt="AI Grading Analysis (Enlarged)"
+        onClose={() => setEnlargedImage(null)}
+      />
     </div>
   );
 }
