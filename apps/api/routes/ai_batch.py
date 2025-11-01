@@ -10,7 +10,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, Form, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import base64
-from ai_agent import ai_agent, get_realtime_thoughts, clear_realtime_thoughts
+from agents import ai_agent, get_realtime_thoughts, clear_realtime_thoughts
 
 router = APIRouter()
 
@@ -265,7 +265,7 @@ async def process_batch_async(
         async def background_processing():
             try:
                 # Create a new AI Agent instance for this session
-                from ai_agent import AIAgent
+                from agents import AIAgent
                 agent = AIAgent()
                 results = await agent.process_batch_pairs(card_pairs, options_dict, session_id)
                 # Store results for later retrieval
