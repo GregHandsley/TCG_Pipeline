@@ -69,18 +69,23 @@ export function PokemonCardDisplay({
   }
 
   return (
-    <div className="pc-panel">
+    <div className="pc-panel" style={{
+      boxShadow: '0 4px 16px rgba(74, 144, 226, 0.15)',
+      border: '3px solid var(--pokemon-blue)'
+    }}>
       {/* Header */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
         marginBottom: '20px',
-        padding: '8px 0',
-        borderBottom: '2px solid var(--pc-border)'
+        padding: '12px',
+        background: 'linear-gradient(to right, rgba(74, 144, 226, 0.1), rgba(74, 144, 226, 0.05))',
+        borderRadius: '6px',
+        border: '2px solid rgba(74, 144, 226, 0.2)'
       }}>
         <div style={{ fontSize: '14px', color: 'var(--pokemon-dark-blue)', fontWeight: 'bold' }}>
-          🔬 RESEARCH SPECIMENS ({cardPairs.length})
+          RESEARCH SPECIMENS ({cardPairs.length})
         </div>
         <div style={{ fontSize: '9px', color: 'var(--pc-text)' }}>
           {isProcessing ? 'Analysis in progress...' : 'Drag cards to rearrange • Click for details'}
@@ -90,8 +95,8 @@ export function PokemonCardDisplay({
       {/* Cards Layout - FIXED WIDTH GRID SYSTEM */}
       <div style={{ 
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, 280px)',
-        gap: '16px',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: '12px',
         justifyContent: 'start',
         marginBottom: drawCards.length > 0 ? '24px' : '0'
       }}>

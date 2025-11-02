@@ -144,9 +144,12 @@ export function CardPairComponent({
             color: 'var(--pokemon-blue)', 
             marginBottom: '8px',
             textAlign: 'center',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            width: '100%',
+            display: 'block',
+            whiteSpace: 'pre'
           }}>
-            FRONT CARD
+            FRONT{'\n'}CARD
           </div>
           <div
             draggable={!isProcessing}
@@ -175,19 +178,33 @@ export function CardPairComponent({
                 : '0 4px 12px rgba(74, 144, 226, 0.2)',
               transform: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'front'
                 ? 'scale(1.05)' 
-                : 'scale(1)'
+                : 'scale(1)',
+              opacity: 1,
+              filter: 'none'
             }}
             onMouseEnter={(e) => {
               if (!isProcessing) {
                 e.currentTarget.style.borderColor = 'var(--pokemon-blue)';
                 e.currentTarget.style.transform = 'scale(1.05)';
                 e.currentTarget.style.boxShadow = '0 6px 20px rgba(74, 144, 226, 0.4)';
+                // Show delete button
+                const deleteBtn = e.currentTarget.querySelector('[data-delete-button="front"]') as HTMLElement;
+                if (deleteBtn) {
+                  deleteBtn.style.opacity = '1';
+                  deleteBtn.style.pointerEvents = 'auto';
+                }
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--pc-border)';
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(74, 144, 226, 0.2)';
+                // Hide delete button
+                const deleteBtn = e.currentTarget.querySelector('[data-delete-button="front"]') as HTMLElement;
+                if (deleteBtn) {
+                  deleteBtn.style.opacity = '0';
+                  deleteBtn.style.pointerEvents = 'none';
+                }
             }}
           >
             {pair.front ? (
@@ -197,7 +214,9 @@ export function CardPairComponent({
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  opacity: 1,
+                  filter: 'none'
                 }}
                 onLoad={() => console.log('Front image loaded for pair', index)}
                 onError={() => console.log('Front image failed to load for pair', index)}
@@ -236,10 +255,8 @@ export function CardPairComponent({
                 }}
                 title={isProcessing ? 'Processing...' : 'Click to upload front card'}
               >
-                📷
                 <div style={{
                   fontSize: '10px',
-                  marginTop: '4px',
                   textAlign: 'center',
                   fontWeight: 'bold'
                 }}>
@@ -265,22 +282,23 @@ export function CardPairComponent({
                 DRAG
               </div>
             )}
-          </div>
-          {/* Delete Button */}
-          {pair.front && !isProcessing && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteCard?.(index, 'front');
-              }}
+            {/* Delete Button */}
+            {pair.front && !isProcessing && (
+              <button
+                data-delete-button="front"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteCard?.(index, 'front');
+                }}
               style={{
                 position: 'absolute',
-                top: '8px',
-                right: '8px',
-                width: '28px',
-                height: '28px',
-                background: 'var(--pokemon-red)',
-                border: '2px solid var(--pokemon-dark-red)',
+                top: '6px',
+                right: '6px',
+                width: '24px',
+                height: '24px',
+                background: 'rgba(0, 0, 0, 0.65)',
+                backdropFilter: 'blur(20px)',
+                border: 'none',
                 borderRadius: '6px',
                 color: 'white',
                 fontSize: '14px',
@@ -288,24 +306,28 @@ export function CardPairComponent({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 'bold',
-                boxShadow: '0 3px 6px rgba(0,0,0,0.4)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
                 transition: 'all 0.2s ease',
-                zIndex: 10
+                zIndex: 10,
+                opacity: 0,
+                pointerEvents: 'none'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.background = '#FF6B6B';
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.85)';
+                e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = 'var(--pokemon-red)';
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.65)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
               }}
               title="Delete front card"
             >
-              🗑️
+              ×
             </button>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Back Card */}
@@ -315,9 +337,12 @@ export function CardPairComponent({
             color: 'var(--pokemon-green)', 
             marginBottom: '8px',
             textAlign: 'center',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            width: '100%',
+            display: 'block',
+            whiteSpace: 'pre'
           }}>
-            BACK CARD
+            BACK{'\n'}CARD
           </div>
           <div
             draggable={!isProcessing}
@@ -346,19 +371,33 @@ export function CardPairComponent({
                 : '0 4px 12px rgba(76, 175, 80, 0.2)',
               transform: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'back'
                 ? 'scale(1.05)' 
-                : 'scale(1)'
+                : 'scale(1)',
+              opacity: 1,
+              filter: 'none'
             }}
             onMouseEnter={(e) => {
               if (!isProcessing) {
                 e.currentTarget.style.borderColor = 'var(--pokemon-green)';
                 e.currentTarget.style.transform = 'scale(1.05)';
                 e.currentTarget.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
+                // Show delete button
+                const deleteBtn = e.currentTarget.querySelector('[data-delete-button="back"]') as HTMLElement;
+                if (deleteBtn) {
+                  deleteBtn.style.opacity = '1';
+                  deleteBtn.style.pointerEvents = 'auto';
+                }
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--pc-border)';
               e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(76, 175, 80, 0.2)';
+                // Hide delete button
+                const deleteBtn = e.currentTarget.querySelector('[data-delete-button="back"]') as HTMLElement;
+                if (deleteBtn) {
+                  deleteBtn.style.opacity = '0';
+                  deleteBtn.style.pointerEvents = 'none';
+                }
             }}
           >
             {pair.back ? (
@@ -368,7 +407,9 @@ export function CardPairComponent({
                 style={{
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover'
+                  objectFit: 'cover',
+                  opacity: 1,
+                  filter: 'none'
                 }}
                 onLoad={() => console.log('Back image loaded for pair', index)}
                 onError={() => console.log('Back image failed to load for pair', index)}
@@ -407,10 +448,8 @@ export function CardPairComponent({
                 }}
                 title={isProcessing ? 'Processing...' : 'Click to upload back card'}
               >
-                📷
                 <div style={{
                   fontSize: '10px',
-                  marginTop: '4px',
                   textAlign: 'center',
                   fontWeight: 'bold'
                 }}>
@@ -436,55 +475,57 @@ export function CardPairComponent({
                 DRAG
               </div>
             )}
-          </div>
-          {/* Delete Button */}
-          {pair.back && !isProcessing && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteCard?.(index, 'back');
-              }}
-              style={{
-                position: 'absolute',
-                top: '8px',
-                right: '8px',
-                width: '28px',
-                height: '28px',
-                background: 'var(--pokemon-red)',
-                border: '2px solid var(--pokemon-dark-red)',
-                borderRadius: '6px',
-                color: 'white',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                boxShadow: '0 3px 6px rgba(0,0,0,0.4)',
-                transition: 'all 0.2s ease',
-                zIndex: 10
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.background = '#FF6B6B';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = 'var(--pokemon-red)';
-              }}
+            {/* Delete Button */}
+            {pair.back && !isProcessing && (
+              <button
+                data-delete-button="back"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteCard?.(index, 'back');
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '24px',
+                  height: '24px',
+                  background: 'rgba(0, 0, 0, 0.65)',
+                  backdropFilter: 'blur(20px)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                  transition: 'all 0.2s ease',
+                  zIndex: 10,
+                  opacity: 0,
+                  pointerEvents: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.85)';
+                  e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.65)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+                }}
               title="Delete back card"
             >
-              🗑️
+              ×
             </button>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* Card Info - Always visible */}
       <div style={{ 
-        fontSize: '10px', 
-        lineHeight: '1.4', 
-        textAlign: 'center',
         background: 'rgba(74, 144, 226, 0.1)',
         padding: '8px',
         borderRadius: '8px',
@@ -492,21 +533,22 @@ export function CardPairComponent({
         minHeight: '40px',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '6px'
       }}>
         {/* Card Name - Always visible, updates in real-time */}
         <div 
           style={{ 
             fontWeight: 'bold', 
             color: identifiedName ? 'var(--pokemon-green)' : 'var(--pokemon-dark-blue)', 
-            marginBottom: '6px',
             fontSize: '12px',
-            minHeight: '18px',
-            display: 'block',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             visibility: 'visible',
             opacity: 1,
             width: '100%',
-            overflow: 'visible',
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis'
           }}
@@ -520,20 +562,20 @@ export function CardPairComponent({
         </div>
         
         {result?.results.identification && result.results.identification.best?.set && (
-          <div style={{ color: 'var(--pokemon-blue)', marginBottom: '3px', fontSize: '10px' }}>
-            📦 {result.results.identification.best.set}
+          <div style={{ color: 'var(--pokemon-blue)', fontSize: '10px' }}>
+            Set: {result.results.identification.best.set}
           </div>
         )}
         
         {result?.results.grade?.records?.[0]?.grades && (
-          <div style={{ color: 'var(--pokemon-yellow)', marginBottom: '3px' }}>
-            📊 Condition: {result.results.grade.records[0].grades.condition}
+          <div style={{ color: 'var(--pokemon-yellow)', fontSize: '10px' }}>
+            Condition: {result.results.grade.records[0].grades.condition}
           </div>
         )}
         
         {result?.results.listing_description && (
-          <div style={{ color: 'var(--pokemon-green)', marginBottom: '3px' }}>
-            📝 Ready
+          <div style={{ color: 'var(--pokemon-green)', fontSize: '10px' }}>
+            Ready
           </div>
         )}
       </div>

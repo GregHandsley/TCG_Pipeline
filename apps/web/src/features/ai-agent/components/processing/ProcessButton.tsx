@@ -24,7 +24,7 @@ export function ProcessButton({ cardPairs, isProcessing, onStartProcessing, onSt
             minWidth: '160px'
           }}
         >
-          {isProcessing ? `🔬 ANALYZING ${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''}...` : `🚀 START RESEARCH (${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''})`}
+          {isProcessing ? `ANALYZING ${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''}...` : `START RESEARCH (${validPairsCount} CARD${validPairsCount !== 1 ? 'S' : ''})`}
         </button>
         
         {isProcessing && (
@@ -37,7 +37,7 @@ export function ProcessButton({ cardPairs, isProcessing, onStartProcessing, onSt
               minWidth: '120px'
             }}
           >
-            ⏹️ STOP RESEARCH
+            STOP RESEARCH
           </button>
         )}
       </div>

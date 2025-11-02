@@ -41,7 +41,7 @@ export function DrawPile({ drawCards, isProcessing, onDragStart, onDelete, onDra
         textAlign: 'center',
         textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
       }}>
-        🎴 DRAW PILE ({drawCards.length})
+        DRAW PILE ({drawCards.length})
       </div>
       <div style={{ 
         fontSize: '10px', 
@@ -119,7 +119,8 @@ function DrawCard({
         cursor: isProcessing ? 'default' : 'grab',
         transition: 'all 0.3s ease',
         boxShadow: '0 4px 8px rgba(255, 193, 7, 0.3)',
-        opacity: isProcessing ? 0.6 : 1
+        opacity: 1,
+        filter: 'none'
       }}
       onMouseEnter={(e) => {
         if (!isProcessing) {
@@ -138,7 +139,9 @@ function DrawCard({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover'
+          objectFit: 'cover',
+          opacity: 1,
+          filter: 'none'
         }}
         onLoad={() => console.log('Draw card image loaded successfully:', drawCard.file.name)}
         onError={(e) => {
@@ -177,7 +180,7 @@ function DrawCard({
           border: '2px solid var(--pokemon-dark-red)',
           borderRadius: '6px',
           color: 'white',
-          fontSize: '12px',
+          fontSize: '18px',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -197,7 +200,7 @@ function DrawCard({
         }}
         title="Delete card from draw pile"
       >
-        🗑️
+        ×
       </button>
     </div>
   );

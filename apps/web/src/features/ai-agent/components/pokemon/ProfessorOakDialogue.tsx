@@ -77,43 +77,24 @@ export function ProfessorOakDialogue({
       marginBottom: '16px',
       boxShadow: 'inset 2px 2px 0 var(--pc-highlight), inset -2px -2px 0 var(--pc-shadow), 4px 4px 0 var(--pc-shadow)'
     }}>
-      {/* Professor Oak Avatar */}
+      {/* Professor Oak Header */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
         marginBottom: '12px'
       }}>
         <div style={{
-          width: '60px',
-          height: '60px',
-          background: 'var(--pokemon-green)',
-          border: '2px solid var(--pokemon-dark-green)',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '24px',
-          marginRight: '12px',
-          boxShadow: 'inset 2px 2px 0 rgba(255,255,255,0.3), inset -2px -2px 0 rgba(0,0,0,0.3)'
+          fontSize: '12px',
+          color: 'var(--pokemon-dark-green)',
+          fontWeight: 'bold',
+          textTransform: 'uppercase'
         }}>
-          👨‍🔬
+          PROFESSOR OAK
         </div>
-        <div>
-          <div style={{
-            fontSize: '12px',
-            color: 'var(--pokemon-dark-green)',
-            fontWeight: 'bold',
-            textTransform: 'uppercase'
-          }}>
-            PROFESSOR OAK
-          </div>
-          <div style={{
-            fontSize: '8px',
-            color: 'var(--pc-text)',
-            opacity: 0.8
-          }}>
-            POKÉMON RESEARCH LAB
-          </div>
+        <div style={{
+          fontSize: '8px',
+          color: 'var(--pc-text)',
+          opacity: 0.8
+        }}>
+          POKÉMON RESEARCH LAB
         </div>
       </div>
 

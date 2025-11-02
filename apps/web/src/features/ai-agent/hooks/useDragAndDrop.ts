@@ -32,8 +32,8 @@ export function useDragAndDrop({ cardPairs, drawCards, isProcessing, onMoveCard,
     setDraggedCard({ pairIndex, cardType, file });
     e.dataTransfer.effectAllowed = 'move';
     
-    // Add visual feedback to the dragged element
-    e.currentTarget.style.opacity = '0.5';
+    // DON'T modify the original element's opacity - keep it at full opacity
+    // Only apply visual effects to the drag image clone
     
     // Create a custom drag image
     const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
@@ -41,6 +41,8 @@ export function useDragAndDrop({ cardPairs, drawCards, isProcessing, onMoveCard,
     dragImage.style.opacity = '0.8';
     dragImage.style.border = '3px solid var(--pokemon-blue)';
     dragImage.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-9999px';
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
     
@@ -66,8 +68,8 @@ export function useDragAndDrop({ cardPairs, drawCards, isProcessing, onMoveCard,
     });
     e.dataTransfer.effectAllowed = 'move';
     
-    // Add visual feedback to the dragged element
-    e.currentTarget.style.opacity = '0.5';
+    // DON'T modify the original element's opacity - keep it at full opacity
+    // Only apply visual effects to the drag image clone
     
     // Create a custom drag image
     const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
@@ -75,6 +77,8 @@ export function useDragAndDrop({ cardPairs, drawCards, isProcessing, onMoveCard,
     dragImage.style.opacity = '0.8';
     dragImage.style.border = '3px solid var(--pokemon-yellow)';
     dragImage.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3)';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-9999px';
     document.body.appendChild(dragImage);
     e.dataTransfer.setDragImage(dragImage, 0, 0);
     
@@ -169,8 +173,8 @@ export function useDragAndDrop({ cardPairs, drawCards, isProcessing, onMoveCard,
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
-    // Restore opacity
-    e.currentTarget.style.opacity = '1';
+    // Since we're not modifying the original element anymore, 
+    // we just need to clear the drag state
     setDraggedCard(null);
     setDragOverTarget(null);
   };

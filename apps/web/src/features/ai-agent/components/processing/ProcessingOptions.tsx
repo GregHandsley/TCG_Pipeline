@@ -9,11 +9,11 @@ interface ProcessingOptionsProps {
 
 export function ProcessingOptionsComponent({ options, isProcessing, onOptionChange }: ProcessingOptionsProps) {
   const optionLabels = {
-    remove_background: '✂️ CROP CARD',
-    identify: '🔍 IDENTIFY',
-    grade: '📊 GRADE',
-    enhance: '✨ ENHANCE',
-    generate_description: '📝 LISTING'
+    remove_background: 'CROP CARD',
+    identify: 'IDENTIFY',
+    grade: 'GRADE',
+    enhance: 'ENHANCE',
+    generate_description: 'LISTING'
   };
 
   // Description requires identification and grading
@@ -57,19 +57,22 @@ export function ProcessingOptionsComponent({ options, isProcessing, onOptionChan
         textAlign: 'center',
         fontWeight: 'bold'
       }}>
-        🔬 RESEARCH OPTIONS
+        RESEARCH OPTIONS
       </div>
       {isDescriptionEnabled && (
         <div style={{
-          fontSize: '7px',
-          color: 'var(--pokemon-yellow)',
+          fontSize: '8px',
+          color: 'var(--pokemon-blue)',
           textAlign: 'center',
-          marginBottom: '8px',
-          padding: '4px',
-          background: 'rgba(255, 193, 7, 0.1)',
-          borderRadius: '4px'
+          marginBottom: '10px',
+          padding: '8px',
+          background: 'rgba(74, 144, 226, 0.08)',
+          borderRadius: '4px',
+          border: '1px solid rgba(74, 144, 226, 0.2)',
+          lineHeight: '1.4'
         }}>
-          ⚠️ Listing requires Identify & Grade
+          <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>Note:</div>
+          Enabling Listing automatically enables Identify & Grade
         </div>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -99,9 +102,6 @@ export function ProcessingOptionsComponent({ options, isProcessing, onOptionChan
                 gap: '4px'
               }}>
                 {optionLabels[optionKey]}
-                {isRequired && value && (
-                  <span style={{ fontSize: '6px', color: 'var(--pokemon-yellow)' }}>⚠️</span>
-                )}
               </span>
             </label>
           );

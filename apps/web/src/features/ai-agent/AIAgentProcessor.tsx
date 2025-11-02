@@ -179,6 +179,35 @@ function AIAgentProcessor() {
 
   return (
     <div className="pokemon-ui">
+      {/* Page Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--pokemon-blue) 0%, var(--pokemon-dark-blue) 100%)',
+        border: '3px solid var(--pokemon-dark-blue)',
+        borderRadius: '12px',
+        padding: '24px',
+        marginBottom: '24px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          fontSize: '20px',
+          color: 'white',
+          fontWeight: 'bold',
+          marginBottom: '8px',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+          letterSpacing: '2px'
+        }}>
+          POKÉMON CARD ANALYSIS LAB
+        </div>
+        <div style={{
+          fontSize: '9px',
+          color: 'rgba(255,255,255,0.9)',
+          letterSpacing: '1px'
+        }}>
+          PROFESSIONAL CARD IDENTIFICATION & GRADING SYSTEM
+        </div>
+      </div>
+
       {/* Professor Oak Dialogue */}
       <ProfessorOakDialogue
         state={getDialogueState()}
@@ -211,7 +240,7 @@ function AIAgentProcessor() {
       <div className="pc-panel">
         <div style={{ textAlign: 'center', padding: '16px' }}>
           <div style={{ fontSize: '12px', color: 'var(--pokemon-dark-blue)', marginBottom: '12px' }}>
-            📁 UPLOAD POKÉMON CARDS
+            UPLOAD POKÉMON CARDS
           </div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
             <button
@@ -232,7 +261,7 @@ function AIAgentProcessor() {
               }}
               disabled={isProcessing}
             >
-              📁 SELECT CARDS
+              SELECT CARDS
             </button>
             {files.length > 0 && (
               <button
@@ -240,17 +269,17 @@ function AIAgentProcessor() {
                 onClick={handleClearAll}
                 disabled={isProcessing}
               >
-                🗑️ CLEAR ALL
+                CLEAR ALL
               </button>
             )}
           </div>
-          {files.length > 0 && (
+          {cardPairs.length > 0 && (
             <div style={{ 
               marginTop: '8px', 
               fontSize: '8px', 
               color: 'var(--pokemon-green)' 
             }}>
-              {files.length} card{files.length !== 1 ? 's' : ''} ready for analysis
+              {cardPairs.length} card pair{cardPairs.length !== 1 ? 's' : ''} ready for analysis
             </div>
           )}
         </div>
