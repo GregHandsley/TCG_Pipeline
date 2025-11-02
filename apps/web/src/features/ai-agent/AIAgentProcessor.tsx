@@ -51,6 +51,7 @@ function AIAgentProcessor() {
 
   const [showResults, setShowResults] = useState(false);
   const [showPokemonRun, setShowPokemonRun] = useState(false);
+  const [pokemonSprite, setPokemonSprite] = useState<string>('');
 
   // Cleanup effect
   useEffect(() => {
@@ -185,14 +186,28 @@ function AIAgentProcessor() {
         <div style={{
           position: 'fixed',
           bottom: '20%',
-          left: '-100px',
-          fontSize: '64px',
+          left: '-150px',
           zIndex: 9999,
           animation: 'pokemonRun 2.5s linear, pokemonBounce 0.3s ease-in-out infinite',
           imageRendering: 'pixelated',
-          filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,0.3))'
+          filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,0.5))'
         }}>
-          {['🐉', '⚡', '🔥', '💧', '🌿', '❄️'][Math.floor(Math.random() * 6)]}
+          {pokemonSprite ? (
+            <img 
+              src={pokemonSprite} 
+              alt="Running Pokémon"
+              style={{
+                width: '96px',
+                height: '96px',
+                imageRendering: 'pixelated',
+                objectFit: 'contain'
+              }}
+            />
+          ) : (
+            <div style={{ fontSize: '64px' }}>
+              {['🐉', '⚡', '🔥', '💧', '🌿', '❄️'][Math.floor(Math.random() * 6)]}
+            </div>
+          )}
         </div>
       )}
       <style>{`
@@ -264,9 +279,43 @@ function AIAgentProcessor() {
               POKÉMON CARD STORAGE SYSTEM
             </div>
             <button
-              onClick={() => {
-                setShowPokemonRun(true);
-                setTimeout(() => setShowPokemonRun(false), 3000);
+              onClick={async () => {
+                // Fetch a random Pokémon from Gen 1-3 (1-386) for nostalgia
+                const randomId = Math.floor(Math.random() * 386) + 1;
+                const cacheKey = `pokemon_sprite_${randomId}`;
+                
+                try {
+                  // Check cache first (respecting PokéAPI fair use policy)
+                  const cachedSprite = localStorage.getItem(cacheKey);
+                  if (cachedSprite) {
+                    setPokemonSprite(cachedSprite);
+                    setShowPokemonRun(true);
+                    setTimeout(() => setShowPokemonRun(false), 3000);
+                    return;
+                  }
+
+                  // Fetch from API if not cached
+                  const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
+                  const data = await response.json();
+                  // Use the animated sprite if available, otherwise use the default front sprite
+                  const sprite = data.sprites.versions?.['generation-v']?.['black-white']?.animated?.front_default 
+                    || data.sprites.front_default;
+                  
+                  // Cache the sprite URL
+                  if (sprite) {
+                    localStorage.setItem(cacheKey, sprite);
+                  }
+                  
+                  setPokemonSprite(sprite);
+                  setShowPokemonRun(true);
+                  setTimeout(() => setShowPokemonRun(false), 3000);
+                } catch (error) {
+                  console.error('Failed to fetch Pokémon:', error);
+                  // Fallback to emoji if API fails
+                  setPokemonSprite('');
+                  setShowPokemonRun(true);
+                  setTimeout(() => setShowPokemonRun(false), 3000);
+                }
               }}
               style={{
                 display: 'inline-block',
