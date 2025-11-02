@@ -50,6 +50,7 @@ function AIAgentProcessor() {
   });
 
   const [showResults, setShowResults] = useState(false);
+  const [showPokemonRun, setShowPokemonRun] = useState(false);
 
   // Cleanup effect
   useEffect(() => {
@@ -178,7 +179,40 @@ function AIAgentProcessor() {
   };
 
   return (
-    <div className="pokemon-ui">
+    <div className="pokemon-ui" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Running Pokémon Animation */}
+      {showPokemonRun && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20%',
+          left: '-100px',
+          fontSize: '64px',
+          zIndex: 9999,
+          animation: 'pokemonRun 2.5s linear, pokemonBounce 0.3s ease-in-out infinite',
+          imageRendering: 'pixelated',
+          filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,0.3))'
+        }}>
+          {['🐉', '⚡', '🔥', '💧', '🌿', '❄️'][Math.floor(Math.random() * 6)]}
+        </div>
+      )}
+      <style>{`
+        @keyframes pokemonRun {
+          0% { 
+            left: -100px;
+          }
+          100% { 
+            left: calc(100vw + 100px);
+          }
+        }
+        @keyframes pokemonBounce {
+          0%, 100% { 
+            transform: translateY(0) scaleX(1.1) scaleY(0.9);
+          }
+          50% { 
+            transform: translateY(-15px) scaleX(0.9) scaleY(1.1);
+          }
+        }
+      `}</style>
       {/* Page Header - Retro PC Monitor Style */}
       <div style={{
         background: '#2C2C2C',
@@ -229,17 +263,34 @@ function AIAgentProcessor() {
             }}>
               POKÉMON CARD STORAGE SYSTEM
             </div>
-            <div style={{
-              display: 'inline-block',
-              background: 'rgba(255,255,255,0.2)',
-              border: '2px solid rgba(255,255,255,0.4)',
-              padding: '4px 12px',
-              fontSize: '8px',
-              color: '#FFFFFF',
-              marginTop: '4px'
-            }}>
+            <button
+              onClick={() => {
+                setShowPokemonRun(true);
+                setTimeout(() => setShowPokemonRun(false), 3000);
+              }}
+              style={{
+                display: 'inline-block',
+                background: 'rgba(255,255,255,0.2)',
+                border: '2px solid rgba(255,255,255,0.4)',
+                padding: '4px 12px',
+                fontSize: '8px',
+                color: '#FFFFFF',
+                marginTop: '4px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.1s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+              }}
+            >
               PRESS START
-            </div>
+            </button>
           </div>
         </div>
         {/* Monitor Stand */}
