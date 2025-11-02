@@ -51,11 +51,15 @@ export function ProcessingOptionsComponent({ options, isProcessing, onOptionChan
   return (
     <div>
       <div style={{ 
-        fontSize: '12px', 
-        color: 'var(--pokemon-dark-blue)', 
+        fontSize: '11px', 
+        color: '#5D4037',
         marginBottom: '12px',
         textAlign: 'center',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        padding: '6px',
+        background: '#D7CCC8',
+        border: '2px solid #8B7355',
+        boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.2)'
       }}>
         RESEARCH OPTIONS
       </div>

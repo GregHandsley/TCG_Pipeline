@@ -70,25 +70,26 @@ export function PokemonCardDisplay({
 
   return (
     <div className="pc-panel" style={{
-      boxShadow: '0 4px 16px rgba(74, 144, 226, 0.15)',
-      border: '3px solid var(--pokemon-blue)'
+      background: '#D8E8F8',
+      border: '4px solid #4A90E2',
+      boxShadow: 'inset 3px 3px 0 rgba(255,255,255,0.5), inset -3px -3px 0 rgba(0,0,0,0.2), 4px 4px 0 rgba(0,0,0,0.3)'
     }}>
-      {/* Header */}
+      {/* Header - PC Box Style */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: '20px',
-        padding: '12px',
-        background: 'linear-gradient(to right, rgba(74, 144, 226, 0.1), rgba(74, 144, 226, 0.05))',
-        borderRadius: '6px',
-        border: '2px solid rgba(74, 144, 226, 0.2)'
+        marginBottom: '16px',
+        padding: '8px 12px',
+        background: '#4A90E2',
+        border: '3px solid #2E5B8A',
+        boxShadow: 'inset 2px 2px 0 rgba(255,255,255,0.3), inset -2px -2px 0 rgba(0,0,0,0.3)'
       }}>
-        <div style={{ fontSize: '14px', color: 'var(--pokemon-dark-blue)', fontWeight: 'bold' }}>
-          RESEARCH SPECIMENS ({cardPairs.length})
+        <div style={{ fontSize: '12px', color: '#FFFFFF', fontWeight: 'bold', textShadow: '1px 1px 0 rgba(0,0,0,0.5)' }}>
+          BOX 1 ({cardPairs.length}/30)
         </div>
-        <div style={{ fontSize: '9px', color: 'var(--pc-text)' }}>
-          {isProcessing ? 'Analysis in progress...' : 'Drag cards to rearrange • Click for details'}
+        <div style={{ fontSize: '8px', color: '#E8F4FD' }}>
+          {isProcessing ? 'ANALYZING...' : 'DRAG TO ORGANIZE'}
         </div>
       </div>
 

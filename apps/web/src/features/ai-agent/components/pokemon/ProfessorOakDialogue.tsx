@@ -70,41 +70,44 @@ export function ProfessorOakDialogue({
 
   return (
     <div style={{
-      background: 'var(--pc-panel-bg)',
-      border: '3px solid var(--pokemon-blue)',
-      borderRadius: '8px',
+      background: '#E8F5E9',
+      border: '4px solid #4CAF50',
       padding: '16px',
       marginBottom: '16px',
-      boxShadow: 'inset 2px 2px 0 var(--pc-highlight), inset -2px -2px 0 var(--pc-shadow), 4px 4px 0 var(--pc-shadow)'
+      boxShadow: 'inset 3px 3px 0 rgba(255,255,255,0.4), inset -3px -3px 0 rgba(0,0,0,0.2), 4px 4px 0 rgba(0,0,0,0.2)'
     }}>
-      {/* Professor Oak Header */}
+      {/* Professor Oak Header - Retro Game Style */}
       <div style={{
-        marginBottom: '12px'
+        marginBottom: '14px',
+        padding: '8px',
+        background: '#4CAF50',
+        border: '3px solid #2E7D32',
+        boxShadow: 'inset 2px 2px 0 rgba(255,255,255,0.3), inset -2px -2px 0 rgba(0,0,0,0.3)'
       }}>
         <div style={{
-          fontSize: '12px',
-          color: 'var(--pokemon-dark-green)',
+          fontSize: '11px',
+          color: '#FFFFFF',
           fontWeight: 'bold',
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          textShadow: '1px 1px 0 rgba(0,0,0,0.5)'
         }}>
           PROFESSOR OAK
         </div>
         <div style={{
           fontSize: '8px',
-          color: 'var(--pc-text)',
-          opacity: 0.8
+          color: '#E8F4FD'
         }}>
           POKÉMON RESEARCH LAB
         </div>
       </div>
 
-      {/* Dialogue */}
+      {/* Dialogue - Retro Text Box */}
       <div style={{
-        background: 'var(--pc-highlight)',
-        border: '2px solid var(--pokemon-blue)',
-        borderRadius: '6px',
+        background: '#FFFFFF',
+        border: '3px solid #2E7D32',
         padding: '12px',
-        marginBottom: '8px'
+        marginBottom: '8px',
+        boxShadow: 'inset 2px 2px 0 rgba(0,0,0,0.1)'
       }}>
         <div style={{
           fontSize: '10px',

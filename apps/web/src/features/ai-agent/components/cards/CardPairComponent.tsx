@@ -171,16 +171,17 @@ export function CardPairComponent({
               }`,
               maxHeight: '140px',
               cursor: isProcessing ? 'default' : 'grab',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.2s ease',
               position: 'relative',
               boxShadow: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'front'
-                ? '0 8px 32px rgba(74, 144, 226, 0.6)' 
-                : '0 4px 12px rgba(74, 144, 226, 0.2)',
+                ? 'inset -3px -3px 0 rgba(0,0,0,0.4), inset 3px 3px 0 rgba(255,255,255,0.3), 0 0 0 3px #FFD700' 
+                : 'inset -2px -2px 0 rgba(0,0,0,0.3), inset 2px 2px 0 rgba(255,255,255,0.4)',
               transform: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'front'
-                ? 'scale(1.05)' 
+                ? 'scale(1.02)' 
                 : 'scale(1)',
               opacity: 1,
-              filter: 'none'
+              filter: 'none',
+              imageRendering: 'pixelated'
             }}
             onMouseEnter={(e) => {
               if (!isProcessing) {
@@ -264,25 +265,25 @@ export function CardPairComponent({
                 </div>
               </div>
             )}
-            {/* Drag Indicator */}
-            {!isProcessing && pair.front && (
-              <div style={{
-                position: 'absolute',
-                top: '6px',
-                left: '6px',
-                background: 'rgba(74, 144, 226, 0.9)',
-                color: 'white',
-                fontSize: '10px',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-              }}>
-                DRAG
-              </div>
-            )}
-            {/* Delete Button */}
+         {/* Drag Indicator - Retro Style */}
+         {!isProcessing && pair.front && (
+           <div style={{
+             position: 'absolute',
+             top: '4px',
+             left: '4px',
+             background: '#4A90E2',
+             color: 'white',
+             fontSize: '8px',
+             padding: '3px 6px',
+             border: '2px solid #2E5B8A',
+             fontWeight: 'bold',
+             textShadow: '1px 1px 0 rgba(0,0,0,0.5)',
+             boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)'
+           }}>
+             DRAG
+           </div>
+         )}
+            {/* Delete Button - Retro Style */}
             {pair.front && !isProcessing && (
               <button
                 data-delete-button="front"
@@ -292,35 +293,33 @@ export function CardPairComponent({
                 }}
               style={{
                 position: 'absolute',
-                top: '6px',
-                right: '6px',
-                width: '24px',
-                height: '24px',
-                background: 'rgba(0, 0, 0, 0.65)',
-                backdropFilter: 'blur(20px)',
-                border: 'none',
-                borderRadius: '6px',
+                top: '4px',
+                right: '4px',
+                width: '20px',
+                height: '20px',
+                background: '#E74C3C',
+                border: '2px solid #C0392B',
                 color: 'white',
-                fontSize: '14px',
+                fontSize: '16px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                transition: 'all 0.2s ease',
+                boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)',
+                transition: 'all 0.1s ease',
                 zIndex: 10,
                 opacity: 0,
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                fontWeight: 'bold',
+                lineHeight: '1'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.1)';
-                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.85)';
-                e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
+                e.currentTarget.style.background = '#C0392B';
+                e.currentTarget.style.boxShadow = 'inset -1px -1px 0 rgba(255,255,255,0.3), inset 1px 1px 0 rgba(0,0,0,0.3)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.65)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+                e.currentTarget.style.background = '#E74C3C';
+                e.currentTarget.style.boxShadow = 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)';
               }}
               title="Delete front card"
             >
@@ -364,16 +363,17 @@ export function CardPairComponent({
               }`,
               maxHeight: '140px',
               cursor: isProcessing ? 'default' : 'grab',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.2s ease',
               position: 'relative',
               boxShadow: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'back'
-                ? '0 8px 32px rgba(76, 175, 80, 0.6)' 
-                : '0 4px 12px rgba(76, 175, 80, 0.2)',
+                ? 'inset -3px -3px 0 rgba(0,0,0,0.4), inset 3px 3px 0 rgba(255,255,255,0.3), 0 0 0 3px #FFD700' 
+                : 'inset -2px -2px 0 rgba(0,0,0,0.3), inset 2px 2px 0 rgba(255,255,255,0.4)',
               transform: dragOverTarget?.pairIndex === index && dragOverTarget?.cardType === 'back'
-                ? 'scale(1.05)' 
+                ? 'scale(1.02)' 
                 : 'scale(1)',
               opacity: 1,
-              filter: 'none'
+              filter: 'none',
+              imageRendering: 'pixelated'
             }}
             onMouseEnter={(e) => {
               if (!isProcessing) {
@@ -457,69 +457,67 @@ export function CardPairComponent({
                 </div>
               </div>
             )}
-            {/* Drag Indicator */}
-            {!isProcessing && pair.back && (
-              <div style={{
-                position: 'absolute',
-                top: '6px',
-                left: '6px',
-                background: 'rgba(76, 175, 80, 0.9)',
-                color: 'white',
-                fontSize: '10px',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-              }}>
-                DRAG
-              </div>
-            )}
-            {/* Delete Button */}
-            {pair.back && !isProcessing && (
-              <button
-                data-delete-button="back"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteCard?.(index, 'back');
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  width: '24px',
-                  height: '24px',
-                  background: 'rgba(0, 0, 0, 0.65)',
-                  backdropFilter: 'blur(20px)',
-                  border: 'none',
-                  borderRadius: '6px',
-                  color: 'white',
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-                  transition: 'all 0.2s ease',
-                  zIndex: 10,
-                  opacity: 0,
-                  pointerEvents: 'none'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.85)';
-                  e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.65)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
-                }}
-              title="Delete back card"
-            >
-              ×
-            </button>
-            )}
+         {/* Drag Indicator - Retro Style */}
+         {!isProcessing && pair.back && (
+           <div style={{
+             position: 'absolute',
+             top: '4px',
+             left: '4px',
+             background: '#4CAF50',
+             color: 'white',
+             fontSize: '8px',
+             padding: '3px 6px',
+             border: '2px solid #2E7D32',
+             fontWeight: 'bold',
+             textShadow: '1px 1px 0 rgba(0,0,0,0.5)',
+             boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)'
+           }}>
+             DRAG
+           </div>
+         )}
+         {/* Delete Button - Retro Style */}
+         {pair.back && !isProcessing && (
+           <button
+             data-delete-button="back"
+             onClick={(e) => {
+               e.stopPropagation();
+               onDeleteCard?.(index, 'back');
+             }}
+             style={{
+               position: 'absolute',
+               top: '4px',
+               right: '4px',
+               width: '20px',
+               height: '20px',
+               background: '#E74C3C',
+               border: '2px solid #C0392B',
+               color: 'white',
+               fontSize: '16px',
+               cursor: 'pointer',
+               display: 'flex',
+               alignItems: 'center',
+               justifyContent: 'center',
+               boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)',
+               transition: 'all 0.1s ease',
+               zIndex: 10,
+               opacity: 0,
+               pointerEvents: 'none',
+               fontWeight: 'bold',
+               lineHeight: '1'
+             }}
+             onMouseEnter={(e) => {
+               e.currentTarget.style.background = '#C0392B';
+               e.currentTarget.style.boxShadow = 'inset -1px -1px 0 rgba(255,255,255,0.3), inset 1px 1px 0 rgba(0,0,0,0.3)';
+             }}
+             onMouseLeave={(e) => {
+               e.currentTarget.style.background = '#E74C3C';
+               e.currentTarget.style.boxShadow = 'inset 1px 1px 0 rgba(255,255,255,0.3), inset -1px -1px 0 rgba(0,0,0,0.3)';
+             }}
+             title="Delete back card"
+           >
+             ×
+           </button>
+         )}
           </div>
         </div>
       </div>

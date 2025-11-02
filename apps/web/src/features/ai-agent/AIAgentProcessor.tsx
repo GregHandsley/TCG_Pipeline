@@ -179,33 +179,78 @@ function AIAgentProcessor() {
 
   return (
     <div className="pokemon-ui">
-      {/* Page Header */}
+      {/* Page Header - Retro PC Monitor Style */}
       <div style={{
-        background: 'linear-gradient(135deg, var(--pokemon-blue) 0%, var(--pokemon-dark-blue) 100%)',
-        border: '3px solid var(--pokemon-dark-blue)',
-        borderRadius: '12px',
-        padding: '24px',
+        background: '#2C2C2C',
+        border: '6px solid #1A1A1A',
+        borderRadius: '4px',
+        padding: '6px',
         marginBottom: '24px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-        textAlign: 'center'
+        boxShadow: 'inset 0 0 0 2px #3A3A3A, 0 6px 0 #0A0A0A',
+        position: 'relative'
       }}>
+        {/* Monitor Screen */}
         <div style={{
-          fontSize: '20px',
-          color: 'white',
-          fontWeight: 'bold',
-          marginBottom: '8px',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-          letterSpacing: '2px'
+          background: 'linear-gradient(180deg, #4A90E2 0%, #2E5B8A 100%)',
+          border: '3px solid #1A3A5A',
+          padding: '20px',
+          position: 'relative',
+          boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.3)',
+          overflow: 'hidden'
         }}>
-          POKÉMON CARD ANALYSIS LAB
+          {/* Scan Lines Effect */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)',
+            pointerEvents: 'none',
+            zIndex: 1
+          }}></div>
+          {/* Content */}
+          <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
+            <div style={{
+              fontSize: '18px',
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+              marginBottom: '8px',
+              textShadow: '2px 2px 0 #1A3A5A, -1px -1px 0 rgba(255,255,255,0.3)',
+              letterSpacing: '1px'
+            }}>
+              BILL'S PC
+            </div>
+            <div style={{
+              fontSize: '8px',
+              color: '#C8E0F0',
+              letterSpacing: '1px',
+              marginBottom: '4px'
+            }}>
+              POKÉMON CARD STORAGE SYSTEM
+            </div>
+            <div style={{
+              display: 'inline-block',
+              background: 'rgba(255,255,255,0.2)',
+              border: '2px solid rgba(255,255,255,0.4)',
+              padding: '4px 12px',
+              fontSize: '8px',
+              color: '#FFFFFF',
+              marginTop: '4px'
+            }}>
+              PRESS START
+            </div>
+          </div>
         </div>
+        {/* Monitor Stand */}
         <div style={{
-          fontSize: '9px',
-          color: 'rgba(255,255,255,0.9)',
-          letterSpacing: '1px'
-        }}>
-          PROFESSIONAL CARD IDENTIFICATION & GRADING SYSTEM
-        </div>
+          background: '#3A3A3A',
+          height: '8px',
+          margin: '4px auto 0',
+          width: '60%',
+          border: '2px solid #2A2A2A',
+          borderTop: 'none'
+        }}></div>
       </div>
 
       {/* Professor Oak Dialogue */}
